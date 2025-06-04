@@ -1,0 +1,4 @@
+(library
+ (name box2d)
+ (public_name box2d)
+ (libraries box2d_c))
