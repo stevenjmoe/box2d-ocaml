@@ -150,9 +150,6 @@ module Functions (F : Ctypes.FOREIGN) = struct
       foreign "b2World_SetContactTuning"
         (World_id.t @-> float @-> float @-> float @-> returning void)
 
-    let set_joint_tuning =
-      foreign "b2World_SetJointTuning" (World_id.t @-> float @-> float @-> returning void)
-
     let set_maximum_linear_speed =
       foreign "b2World_SetMaximumLinearSpeed" (World_id.t @-> float @-> returning void)
 
@@ -726,12 +723,6 @@ module Functions (F : Ctypes.FOREIGN) = struct
     module Weld_joint = struct
       let create_weld_joint =
         foreign "b2CreateWeldJoint" (World_id.t @-> ptr Weld_joint_def.t @-> returning Joint_id.t)
-
-      let get_reference_angle =
-        foreign "b2WeldJoint_GetReferenceAngle" (Joint_id.t @-> returning float)
-
-      let set_reference_angle =
-        foreign "b2WeldJoint_SetReferenceAngle" (Joint_id.t @-> float @-> returning void)
 
       let set_linear_hertz =
         foreign "b2WeldJoint_SetLinearHertz" (Joint_id.t @-> float @-> returning void)

@@ -663,14 +663,6 @@ module World : sig
 
       note Advanced feature *)
 
-  val set_joint_tuning : World_id.t -> float -> float -> unit
-  (** Adjust joint tuning parameters
-      @param worldId The world id
-      @param hertz The contact stiffness (cycles per second)
-      @param dampingRatio The contact bounciness with 1 being critical damping (non-dimensional)
-
-      note Advanced feature *)
-
   val set_maximum_linear_speed : World_id.t -> float -> unit
   (** Set the maximum linear speed. Usually in m/s. *)
 
@@ -1638,12 +1630,6 @@ module Shape : sig
     (** Create a weld joint
 
         see b2WeldJointDef for details *)
-
-    val get_reference_angle : Joint_id.t -> float
-    (** Get the weld joint reference angle in radians *)
-
-    val set_reference_angle : Joint_id.t -> float -> unit
-    (** Set the weld joint reference angle in radians, must be in [-pi,pi]. *)
 
     val set_linear_hertz : Joint_id.t -> float -> unit
     (** Set the weld joint linear stiffness in Hertz. 0 is rigid. *)
