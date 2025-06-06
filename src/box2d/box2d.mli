@@ -7,9 +7,19 @@ module Vec2 : sig
   type t = t' ctyp
 
   val t : t Ctypes.typ
-  val create : float -> float -> (Box2d_c.Types.Vec2.t, [ `Struct ]) Ctypes.structured
+
+  val create : float -> float -> t
+  (** [create x y] *)
+
+  val zero : unit -> t
   val x : t -> float
   val y : t -> float
+
+  val set_x : t -> float -> unit
+  (** [set_x t x] *)
+
+  val set_y : t -> float -> unit
+  (** [set_y t y] *)
 end
 
 module Rot : sig
@@ -17,51 +27,152 @@ module Rot : sig
   type t = t' ctyp
 
   val t : t Ctypes.typ
+
+  val create : float -> float -> t
+  (** [create cosine sine] *)
+
+  val zero : unit -> t
   val c : t -> float
   val s : t -> float
+
+  val set_c : t -> float -> unit
+  (** [set_c t cosine] *)
+
+  val set_s : t -> float -> unit
+  (** [set_s t sine] *)
 end
 
 module Transform : sig
   type t' = Box2d_c.Types.Transform.t
   type t = t' ctyp
 
+  val create : Vec2.t -> Rot.t -> t
+  (** [create p q]*)
+
+  val zero : unit -> t
   val t : t Ctypes.typ
+  val p : t -> Vec2.t
+  val q : t -> Rot.t
+
+  val set_p : t -> Vec2.t -> unit
+  (** [set_p t p] *)
+
+  val set_q : t -> Rot.t -> unit
+  (** [set_q t q] *)
 end
 
-module Circle : sig
-  type t' = Box2d_c.Types.Circle.t
-  type t = t' ctyp
+module Geometry : sig
+  (** A solid circle. *)
+  module Circle : sig
+    type t' = Box2d_c.Types.Circle.t
+    type t = t' ctyp
 
-  val t : t Ctypes.typ
-  val create : float -> t
-end
+    val t : t Ctypes.typ
 
-module Polygon : sig
-  type t' = Box2d_c.Types.Polygon.t
-  type t = t' ctyp
+    val create : ?center:Vec2.t -> float -> t
+    (** [create center radius]*)
 
-  val t : t Ctypes.typ
-end
+    val center : t -> Vec2.t
+    (** The local center. *)
 
-module Capsule : sig
-  type t' = Box2d_c.Types.Capsule.t
-  type t = t' ctyp
+    val radius : t -> float
+    (** The radius. *)
+  end
 
-  val t : t Ctypes.typ
-end
+  (** A solid capsule can be viewed as two semicircles connected by a rectangle. *)
+  module Capsule : sig
+    type t' = Box2d_c.Types.Capsule.t
+    type t = t' ctyp
 
-module Segment : sig
-  type t' = Box2d_c.Types.Segment.t
-  type t = t' ctyp
+    val t : t Ctypes.typ
 
-  val t : t Ctypes.typ
-end
+    val create : Vec2.t -> Vec2.t -> float -> t
+    (** [create center1 center2 radius] *)
 
-module Chain_segment : sig
-  type t' = Box2d_c.Types.Chain_segment.t
-  type t = t' ctyp
+    val center1 : t -> Vec2.t
+    (** Local center of the first semicircle. *)
 
-  val t : t Ctypes.typ
+    val center2 : t -> Vec2.t
+    (** Local center of the second semicircle. *)
+
+    val radius : t -> float
+    (** The radius of the semicircles *)
+  end
+
+  (** A solid convex polygon.
+
+      It is assumed that the interior of the polygon is to the left of each edge. Polygons have a
+      maximum number of vertices equal to B2_MAX_POLYGON_VERTICES. In most cases you should not need
+      many vertices for a convex polygon.
+
+      Warning: DO NOT fill this out manually, instead use a helper function like b2MakePolygon or
+      b2MakeBox. *)
+  module Polygon : sig
+    type t' = Box2d_c.Types.Polygon.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val create : float -> float -> t
+
+    val centroid : t -> Vec2.t
+    (** The centroid of the polygon. *)
+
+    val count : t -> int
+    (** The number of polygon vertices. *)
+
+    val normals : t -> Vec2.t Ctypes_static.carray
+    (** The outward normal vectors of the polygon sides. *)
+
+    val radius : t -> float
+    (** The external radius for rounded polygons. *)
+
+    val vertices : t -> Vec2.t Ctypes_static.carray
+    (** The polygon vertices. *)
+  end
+
+  (** A line segment with two-sided collision. *)
+  module Segment : sig
+    type t' = Box2d_c.Types.Segment.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val create : Vec2.t -> Vec2.t -> t
+    (** [create point1 point2] *)
+
+    val point1 : t -> Vec2.t
+    val point2 : t -> Vec2.t
+  end
+
+  (** A line segment with one-sided collision.
+
+      Only collides on the right side. Several of these are generated for a chain shape. ghost1 ->
+      point1 -> point2 -> ghost2 *)
+  module Chain_segment : sig
+    type t' = Box2d_c.Types.Chain_segment.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val create : Vec2.t -> Vec2.t -> Segment.t -> t
+    (** [create ghost1 ghost2 segment] *)
+
+    val chain_id : t -> int
+    (** The owning chain shape index (internal usage only). *)
+
+    val ghost1 : t -> Vec2.t
+    (** The tail ghost vertex. *)
+
+    val ghost2 : t -> Vec2.t
+    (** The head ghost vertex. *)
+
+    val segment : t -> Segment.t
+    (** The line segment. *)
+  end
+
+  val make_box : float -> float -> Polygon.t
+  (** [make_box half_width_x half_width_y] Make a box (rectangle) polygon, bypassing the need for a
+      convex hull. *)
 end
 
 module Ray_cast_input : sig
@@ -74,13 +185,6 @@ end
 (** Low level ray cast or shape-cast output data *)
 module Cast_output : sig
   type t' = Box2d_c.Types.Cast_output.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
-module World_id : sig
-  type t' = Box2d_c.Types.World_id.t
   type t = t' ctyp
 
   val t : t Ctypes.typ
@@ -219,55 +323,6 @@ module Body_def : sig
   val is_enabled : t -> bool
   val allow_fast_rotation : t -> bool
   val internal_value : t -> int
-end
-
-val make_box : float -> float -> Polygon.t
-
-module World_def : sig
-  type t' = Box2d_c.Types.World_def.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val default : unit -> t
-
-  val create :
-    ?gravity:Vec2.t' ctyp ->
-    ?restitution_threshold:float ->
-    ?hit_event_threshold:float ->
-    ?contact_hertz:float ->
-    ?contact_damping_ratio:float ->
-    ?max_contact_push_speed:float ->
-    ?joint_hertz:float ->
-    ?joint_damping_ratio:float ->
-    ?maximum_linear_speed:float ->
-    ?enable_sleep:bool ->
-    ?enable_continuous:bool ->
-    ?worker_count:int ->
-    unit ->
-    t
-
-  val set_gravity : t -> Vec2.t -> unit
-  val set_restitution_threshold : t -> float -> unit
-  val set_hit_event_threshold : t -> float -> unit
-  val set_contact_hertz : t -> float -> unit
-  val set_contact_damping_ratio : t -> float -> unit
-  val set_max_contact_push_speed : t -> float -> unit
-  val set_joint_hertz : t -> float -> unit
-  val set_joint_damping_ratio : t -> float -> unit
-  val set_maximum_linear_speed : t -> float -> unit
-  val set_enable_sleep : t -> bool -> unit
-  val set_enable_continuous : t -> bool -> unit
-  val gravity : t -> Vec2.t
-  val restitution_threshold : t -> float
-  val hit_event_threshold : t -> float
-  val contact_hertz : t -> float
-  val contact_damping_ratio : t -> float
-  val max_contact_push_speed : t -> float
-  val joint_hertz : t -> float
-  val joint_damping_ratio : t -> float
-  val maximum_linear_speed : t -> float
-  val enable_sleep : t -> bool
-  val enable_continuous : t -> bool
 end
 
 module Motor_joint_def : sig
@@ -473,6 +528,60 @@ end
     debug draw, timing information, and counters. You can find documentation here:
     https://box2d.org/ *)
 module World : sig
+  module World_id : sig
+    type t' = Box2d_c.Types.World.World_id.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+  end
+
+  module World_def : sig
+    type t' = Box2d_c.Types.World.World_def.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val default : unit -> t
+
+    val create :
+      ?gravity:Vec2.t' ctyp ->
+      ?restitution_threshold:float ->
+      ?hit_event_threshold:float ->
+      ?contact_hertz:float ->
+      ?contact_damping_ratio:float ->
+      ?max_contact_push_speed:float ->
+      ?joint_hertz:float ->
+      ?joint_damping_ratio:float ->
+      ?maximum_linear_speed:float ->
+      ?enable_sleep:bool ->
+      ?enable_continuous:bool ->
+      ?worker_count:int ->
+      unit ->
+      t
+
+    val set_gravity : t -> Vec2.t -> unit
+    val set_restitution_threshold : t -> float -> unit
+    val set_hit_event_threshold : t -> float -> unit
+    val set_contact_hertz : t -> float -> unit
+    val set_contact_damping_ratio : t -> float -> unit
+    val set_max_contact_push_speed : t -> float -> unit
+    val set_joint_hertz : t -> float -> unit
+    val set_joint_damping_ratio : t -> float -> unit
+    val set_maximum_linear_speed : t -> float -> unit
+    val set_enable_sleep : t -> bool -> unit
+    val set_enable_continuous : t -> bool -> unit
+    val gravity : t -> Vec2.t
+    val restitution_threshold : t -> float
+    val hit_event_threshold : t -> float
+    val contact_hertz : t -> float
+    val contact_damping_ratio : t -> float
+    val max_contact_push_speed : t -> float
+    val joint_hertz : t -> float
+    val joint_damping_ratio : t -> float
+    val maximum_linear_speed : t -> float
+    val enable_sleep : t -> bool
+    val enable_continuous : t -> bool
+  end
+
   val create : World_def.t Ctypes_static.ptr -> World_id.t
   (** Create a world for rigid body simulation. A world contains bodies, shapes, and constraints.
       You make create up to 128 worlds. Each world is completely independent and may be simulated in
@@ -568,13 +677,14 @@ module World : sig
   (** Cast a shape through the world. Similar to a cast ray except that a shape is cast instead of a
       point. see b2World_CastRay *)
 
-  val cast_mover : World_id.t -> Capsule.t Ctypes_static.ptr -> Vec2.t -> Query_filter.t -> float
+  val cast_mover :
+    World_id.t -> Geometry.Capsule.t Ctypes_static.ptr -> Vec2.t -> Query_filter.t -> float
   (** Cast a capsule mover through the world. This is a special shape cast that handles sliding
       along other shapes while reducing clipping. *)
 
   val collide_mover :
     World_id.t ->
-    Capsule.t Ctypes_static.ptr ->
+    Geometry.Capsule.t Ctypes_static.ptr ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr ->
     Plane_result.t Ctypes_static.ptr ->
@@ -712,7 +822,7 @@ end
 module Body : sig
   val default_body_def : unit -> Body_def.t
 
-  val create : World_id.t -> Body_def.t Ctypes_static.ptr -> Body_id.t
+  val create : World.World_id.t -> Body_def.t Ctypes_static.ptr -> Body_id.t
   (** Create a rigid body given a definition. No reference to the definition is retained. So you can
       create the definition on the stack and pass it as a pointer.
 
@@ -954,7 +1064,7 @@ module Body : sig
 
       see b2ShapeDef::enableHitEvents *)
 
-  val get_world : Body_id.t -> World_id.t
+  val get_world : Body_id.t -> World.World_id.t
   (** Get the world that owns this body *)
 
   val get_shape_count : Body_id.t -> int
@@ -993,25 +1103,25 @@ end
     properties including friction and restitution. *)
 module Shape : sig
   val create_circle :
-    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Circle.t Ctypes_static.ptr -> Shape_id.t
+    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Geometry.Circle.t Ctypes_static.ptr -> Shape_id.t
   (** Create a circle shape and attach it to a body. The shape definition and geometry are fully
       cloned. Contacts are not created until the next time step.
       @return the shape id for accessing the shape *)
 
   val create_segment :
-    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Segment.t Ctypes_static.ptr -> Shape_id.t
+    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Geometry.Segment.t Ctypes_static.ptr -> Shape_id.t
   (** Create a line segment shape and attach it to a body. The shape definition and geometry are
       fully cloned. Contacts are not created until the next time step.
       @return the shape id for accessing the shape *)
 
   val create_capsule :
-    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Capsule.t Ctypes_static.ptr -> Shape_id.t
+    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Geometry.Capsule.t Ctypes_static.ptr -> Shape_id.t
   (** Create a capsule shape and attach it to a body. The shape definition and geometry are fully
       cloned. Contacts are not created until the next time step.
       @return the shape id for accessing the shape *)
 
   val create_polygon :
-    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Polygon.t Ctypes_static.ptr -> Shape_id.t
+    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Geometry.Polygon.t Ctypes_static.ptr -> Shape_id.t
   (** Create a polygon shape and attach it to a body. The shape definition and geometry are fully
       cloned. Contacts are not created until the next time step.
       @return the shape id for accessing the shape *)
@@ -1031,7 +1141,7 @@ module Shape : sig
   val get_body : Shape_id.t -> Body_id.t
   (** Get the id of the body that a shape is attached to *)
 
-  val get_world : Shape_id.t -> World_id.t
+  val get_world : Shape_id.t -> World.World_id.t
   (** Get the world that owns this shape *)
 
   val is_sensor : Shape_id.t -> bool
@@ -1136,38 +1246,38 @@ module Shape : sig
   val ray_cast : Shape_id.t -> Ray_cast_input.t Ctypes_static.ptr -> Cast_output.t
   (** Ray cast a shape directly *)
 
-  val get_circle : Shape_id.t -> Circle.t
+  val get_circle : Shape_id.t -> Geometry.Circle.t
   (** Get a copy of the shape's circle. Asserts the type is correct. *)
 
-  val get_segment : Shape_id.t -> Segment.t
+  val get_segment : Shape_id.t -> Geometry.Segment.t
   (** Get a copy of the shape's line segment. Asserts the type is correct. *)
 
-  val get_chain_segment : Shape_id.t -> Chain_segment.t
+  val get_chain_segment : Shape_id.t -> Geometry.Chain_segment.t
   (** Get a copy of the shape's chain segment. These come from chain shapes. Asserts the type is
       correct. *)
 
-  val get_capsule : Shape_id.t -> Capsule.t
+  val get_capsule : Shape_id.t -> Geometry.Capsule.t
   (** Get a copy of the shape's capsule. Asserts the type is correct. *)
 
-  val get_polygon : Shape_id.t -> Polygon.t
+  val get_polygon : Shape_id.t -> Geometry.Polygon.t
   (** Get a copy of the shape's convex polygon. Asserts the type is correct. *)
 
-  val set_circle : Shape_id.t -> Circle.t Ctypes_static.ptr -> unit
+  val set_circle : Shape_id.t -> Geometry.Circle.t Ctypes_static.ptr -> unit
   (** Allows you to change a shape to be a circle or update the current circle. This does not modify
       the mass properties.
 
       see b2Body_ApplyMassFromShapes *)
 
-  val set_capsule : Shape_id.t -> Capsule.t Ctypes_static.ptr -> unit
+  val set_capsule : Shape_id.t -> Geometry.Capsule.t Ctypes_static.ptr -> unit
   (** Allows you to change a shape to be a capsule or update the current capsule. This does not
       modify the mass properties.
 
       see b2Body_ApplyMassFromShapes *)
 
-  val set_segment : Shape_id.t -> Segment.t Ctypes_static.ptr -> unit
+  val set_segment : Shape_id.t -> Geometry.Segment.t Ctypes_static.ptr -> unit
   (** Allows you to change a shape to be a segment or update the current segment. *)
 
-  val set_polygon : Shape_id.t -> Polygon.t Ctypes_static.ptr -> unit
+  val set_polygon : Shape_id.t -> Geometry.Polygon.t Ctypes_static.ptr -> unit
   (** Allows you to change a shape to be a polygon or update the current polygon. This does not
       modify the mass properties.
 
@@ -1228,7 +1338,7 @@ module Shape : sig
     val destroy_chain : Chain_id.t -> unit
     (** Destroy a chain shape *)
 
-    val get_world : Chain_id.t -> World_id.t
+    val get_world : Chain_id.t -> World.World_id.t
     (** Get the world that owns this chain shape *)
 
     val get_segment_count : Chain_id.t -> int
@@ -1284,7 +1394,7 @@ module Shape : sig
     val get_body_b : Joint_id.t -> Body_id.t
     (** Get body B id on a joint *)
 
-    val get_world : Joint_id.t -> World_id.t
+    val get_world : Joint_id.t -> World.World_id.t
     (** Get the world that owns this joint *)
 
     val get_local_anchor_a : Joint_id.t -> Vec2.t
@@ -1316,7 +1426,8 @@ module Shape : sig
   end
 
   module Distance_joint : sig
-    val create_distance_joint : World_id.t -> Distance_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_distance_joint :
+      World.World_id.t -> Distance_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a distance joint
 
         see b2DistanceJointDef for details *)
@@ -1392,7 +1503,7 @@ module Shape : sig
       relative position and rotation and applies the forces and torques needed to achieve that
       relative transform over time. *)
   module Motor_joint : sig
-    val create_motor_joint : World_id.t -> Motor_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_motor_joint : World.World_id.t -> Motor_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (**Create a motor joint
 
        see b2MotorJointDef for details*)
@@ -1431,7 +1542,7 @@ module Shape : sig
   (** The mouse joint is designed for use in the samples application, but you may find it useful in
       applications where the user moves a rigid body with a cursor. *)
   module Mouse_joint : sig
-    val create_mouse_joint : World_id.t -> Mouse_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_mouse_joint : World.World_id.t -> Mouse_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a mouse joint
 
         see b2MouseJointDef for details *)
@@ -1464,7 +1575,7 @@ module Shape : sig
   (** The filter joint is used to disable collision between two bodies. As a side effect of being a
       joint, it also keeps the two bodies in the same simulation island. *)
   module Filter_joint : sig
-    val create_filter_joint : World_id.t -> Filter_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_filter_joint : World.World_id.t -> Filter_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a filter joint.
 
         see b2FilterJointDef for details *)
@@ -1474,7 +1585,7 @@ module Shape : sig
       body to translate along an axis and have no rotation. Also called a *slider* joint. *)
   module Prismatic_joint : sig
     val create_prismatic_filter_joint :
-      World_id.t -> Prismatic_join_def.t Ctypes_static.ptr -> Joint_id.t
+      World.World_id.t -> Prismatic_join_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a prismatic (slider) joint.
 
         see b2PrismaticJointDef for details *)
@@ -1551,7 +1662,8 @@ module Shape : sig
   (** The revolute joint is probably the most common joint. It can be used for ragdolls and chains.
       Also called a *hinge* or *pin* joint. *)
   module Revolute_joint : sig
-    val create_revolute_joint : World_id.t -> Revolute_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_revolute_joint :
+      World.World_id.t -> Revolute_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a revolute joint
 
         see b2RevoluteJointDef for details *)
@@ -1626,7 +1738,7 @@ module Shape : sig
   (** A weld joint constrains the relative rotation and translation between two bodies. Both
       rotation and translation can have damped springs. *)
   module Weld_joint : sig
-    val create_weld_joint : World_id.t -> Weld_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_weld_joint : World.World_id.t -> Weld_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a weld joint
 
         see b2WeldJointDef for details *)
@@ -1659,7 +1771,7 @@ module Shape : sig
   (** * The wheel joint restricts body B to move along a local axis in body A. Body B is free to *
       rotate. Supports a linear spring, linear limits, and a rotational motor. *)
   module Wheel_joint : sig
-    val create_wheel_joint : World_id.t -> Wheel_joint_def.t Ctypes_static.ptr -> Joint_id.t
+    val create_wheel_joint : World.World_id.t -> Wheel_joint_def.t Ctypes_static.ptr -> Joint_id.t
     (** Create a wheel joint
 
         see b2WheelJointDef for details *)

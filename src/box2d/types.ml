@@ -23,6 +23,13 @@ module Vec2 = struct
 
   let x v = getf v Vec2.x
   let y v = getf v Vec2.y
+
+  let zero () =
+    let v2 = make t in
+    setf v2 Vec2.x 0.;
+    setf v2 Vec2.y 0.;
+    v2
+
   let set_x v x = setf v Vec2.x x
   let set_y v y = setf v Vec2.y y
 end
@@ -32,8 +39,23 @@ module Rot = struct
   type t = t' ctyp
 
   let t = Rot.t
+
+  let create c s =
+    let r = make t in
+    setf r Rot.c c;
+    setf r Rot.s s;
+    r
+
+  let zero () =
+    let r = make t in
+    setf r Rot.c 0.;
+    setf r Rot.s 0.;
+    r
+
   let c v = getf v Rot.c
   let s v = getf v Rot.s
+  let set_c r c = setf r Rot.c c
+  let set_s r s = setf r Rot.s s
 end
 
 module Transform = struct
@@ -41,46 +63,109 @@ module Transform = struct
   type t = t' ctyp
 
   let t = Transform.t
+
+  let create p q =
+    let r = make t in
+    setf r Transform.p p;
+    setf r Transform.q q;
+    r
+
+  let zero () =
+    let r = make t in
+    setf r Transform.p @@ Vec2.zero ();
+    setf r Transform.q @@ Rot.zero ();
+    r
+
+  let p t = getf t Transform.p
+  let q t = getf t Transform.q
+  let set_p t p = setf t Transform.p p
+  let set_q t q = setf t Transform.q q
 end
 
-module Circle = struct
-  type t' = Circle.t
-  type t = t' ctyp
+module Geometry = struct
+  let make_box = Functions.make_box
 
-  let t = Circle.t
+  module Circle = struct
+    type t' = Circle.t
+    type t = t' ctyp
 
-  let create radius =
-    let c = make t in
-    setf c Circle.radius radius;
-    c
-end
+    let t = Circle.t
 
-module Polygon = struct
-  type t' = Polygon.t
-  type t = t' ctyp
+    let create ?(center = Vec2.create 0. 0.) radius =
+      let c = make t in
+      setf c Circle.center center;
+      setf c Circle.radius radius;
+      c
 
-  let t = Polygon.t
-end
+    let center c = getf c Circle.center
+    let radius c = getf c Circle.radius
+  end
 
-module Capsule = struct
-  type t' = Capsule.t
-  type t = t' ctyp
+  module Capsule = struct
+    type t' = Capsule.t
+    type t = t' ctyp
 
-  let t = Capsule.t
-end
+    let t = Capsule.t
 
-module Segment = struct
-  type t' = Segment.t
-  type t = t' ctyp
+    let create center1 center2 radius =
+      let c = make t in
+      setf c Capsule.center1 center1;
+      setf c Capsule.center2 center2;
+      setf c Capsule.radius radius;
+      c
 
-  let t = Segment.t
-end
+    let center1 c = getf c Capsule.center1
+    let center2 c = getf c Capsule.center2
+    let radius c = getf c Capsule.radius
+  end
 
-module Chain_segment = struct
-  type t' = Chain_segment.t
-  type t = t' ctyp
+  module Polygon = struct
+    type t' = Polygon.t
+    type t = t' ctyp
 
-  let t = Chain_segment.t
+    let t = Polygon.t
+    let create = Functions.make_box
+    let centroid p = getf p Polygon.centroid
+    let count p = getf p Polygon.count
+    let normals p = getf p Polygon.normals
+    let radius p = getf p Polygon.radius
+    let vertices p = getf p Polygon.vertices
+  end
+
+  module Segment = struct
+    type t' = Segment.t
+    type t = t' ctyp
+
+    let t = Segment.t
+
+    let create point1 point2 =
+      let s = make t in
+      setf s Segment.point1 point1;
+      setf s Segment.point2 point2;
+      s
+
+    let point1 s = getf s Segment.point1
+    let point2 s = getf s Segment.point2
+  end
+
+  module Chain_segment = struct
+    type t' = Chain_segment.t
+    type t = t' ctyp
+
+    let t = Chain_segment.t
+
+    let create ghost1 ghost2 segment =
+      let c = make t in
+      setf c Chain_segment.ghost1 ghost1;
+      setf c Chain_segment.ghost2 ghost2;
+      setf c Chain_segment.segment segment;
+      c
+
+    let chain_id c = getf c Chain_segment.chain_id
+    let ghost1 c = getf c Chain_segment.ghost1
+    let ghost2 c = getf c Chain_segment.ghost2
+    let segment c = getf c Chain_segment.segment
+  end
 end
 
 module Ray_cast_input = struct
@@ -97,11 +182,75 @@ module Cast_output = struct
   let t = Cast_output.t
 end
 
-module World_id = struct
-  type t' = World_id.t
-  type t = t' ctyp
+module World = struct
+  module World_id = struct
+    type t' = World.World_id.t
+    type t = t' ctyp
 
-  let t = World_id.t
+    let t = World.World_id.t
+  end
+
+  module World_def = struct
+    open World
+
+    type t' = World.World_def.t
+    type t = t' ctyp
+
+    let t = World.World_def.t
+    let default = Functions.World.default_world_def
+
+    let create
+        ?gravity
+        ?restitution_threshold
+        ?hit_event_threshold
+        ?contact_hertz
+        ?contact_damping_ratio
+        ?max_contact_push_speed
+        ?joint_hertz
+        ?joint_damping_ratio
+        ?maximum_linear_speed
+        ?enable_sleep
+        ?enable_continuous
+        ?worker_count
+        () =
+      let def = Functions.World.default_world_def () in
+      Option.iter (fun x -> setf def World_def.gravity x) gravity;
+      Option.iter (fun x -> setf def World_def.restitution_threshold x) restitution_threshold;
+      Option.iter (fun x -> setf def World_def.hit_event_threshold x) hit_event_threshold;
+      Option.iter (fun x -> setf def World_def.contact_hertz x) contact_hertz;
+      Option.iter (fun x -> setf def World_def.contact_damping_ratio x) contact_damping_ratio;
+      Option.iter (fun x -> setf def World_def.max_contact_push_speed x) max_contact_push_speed;
+      Option.iter (fun x -> setf def World_def.joint_hertz x) joint_hertz;
+      Option.iter (fun x -> setf def World_def.joint_damping_ratio x) joint_damping_ratio;
+      Option.iter (fun x -> setf def World_def.maximum_linear_speed x) maximum_linear_speed;
+      Option.iter (fun x -> setf def World_def.enable_sleep x) enable_sleep;
+      Option.iter (fun x -> setf def World_def.enable_continuous x) enable_continuous;
+      Option.iter (fun x -> setf def World_def.worker_count x) worker_count;
+      def
+
+    let set_gravity d g = setf d World_def.gravity g
+    let set_restitution_threshold d r = setf d World_def.restitution_threshold r
+    let set_hit_event_threshold d h = setf d World_def.hit_event_threshold h
+    let set_contact_hertz d c = setf d World_def.contact_hertz c
+    let set_contact_damping_ratio d c = setf d World_def.contact_damping_ratio c
+    let set_max_contact_push_speed d m = setf d World_def.max_contact_push_speed m
+    let set_joint_hertz d j = setf d World_def.joint_hertz j
+    let set_joint_damping_ratio d j = setf d World_def.joint_damping_ratio j
+    let set_maximum_linear_speed d m = setf d World_def.maximum_linear_speed m
+    let set_enable_sleep d e = setf d World_def.enable_sleep e
+    let set_enable_continuous d e = setf d World_def.enable_continuous e
+    let gravity d = getf d World_def.gravity
+    let restitution_threshold d = getf d World_def.restitution_threshold
+    let hit_event_threshold d = getf d World_def.hit_event_threshold
+    let contact_hertz d = getf d World_def.contact_hertz
+    let contact_damping_ratio d = getf d World_def.contact_damping_ratio
+    let max_contact_push_speed d = getf d World_def.max_contact_push_speed
+    let joint_hertz d = getf d World_def.joint_hertz
+    let joint_damping_ratio d = getf d World_def.joint_damping_ratio
+    let maximum_linear_speed d = getf d World_def.maximum_linear_speed
+    let enable_sleep d = getf d World_def.enable_sleep
+    let enable_continuous d = getf d World_def.enable_continuous
+  end
 end
 
 module Body_id = struct
@@ -140,66 +289,6 @@ module Shape_proxy = struct
   type t = t' ctyp
 
   let t = Shape_proxy.t
-end
-
-module World_def = struct
-  type t' = World_def.t
-  type t = t' ctyp
-
-  let t = World_def.t
-  let default = Functions.World.default_world_def
-
-  let create
-      ?gravity
-      ?restitution_threshold
-      ?hit_event_threshold
-      ?contact_hertz
-      ?contact_damping_ratio
-      ?max_contact_push_speed
-      ?joint_hertz
-      ?joint_damping_ratio
-      ?maximum_linear_speed
-      ?enable_sleep
-      ?enable_continuous
-      ?worker_count
-      () =
-    let def = Functions.World.default_world_def () in
-    Option.iter (fun x -> setf def World_def.gravity x) gravity;
-    Option.iter (fun x -> setf def World_def.restitution_threshold x) restitution_threshold;
-    Option.iter (fun x -> setf def World_def.hit_event_threshold x) hit_event_threshold;
-    Option.iter (fun x -> setf def World_def.contact_hertz x) contact_hertz;
-    Option.iter (fun x -> setf def World_def.contact_damping_ratio x) contact_damping_ratio;
-    Option.iter (fun x -> setf def World_def.max_contact_push_speed x) max_contact_push_speed;
-    Option.iter (fun x -> setf def World_def.joint_hertz x) joint_hertz;
-    Option.iter (fun x -> setf def World_def.joint_damping_ratio x) joint_damping_ratio;
-    Option.iter (fun x -> setf def World_def.maximum_linear_speed x) maximum_linear_speed;
-    Option.iter (fun x -> setf def World_def.enable_sleep x) enable_sleep;
-    Option.iter (fun x -> setf def World_def.enable_continuous x) enable_continuous;
-    Option.iter (fun x -> setf def World_def.worker_count x) worker_count;
-    def
-
-  let set_gravity d g = setf d World_def.gravity g
-  let set_restitution_threshold d r = setf d World_def.restitution_threshold r
-  let set_hit_event_threshold d h = setf d World_def.hit_event_threshold h
-  let set_contact_hertz d c = setf d World_def.contact_hertz c
-  let set_contact_damping_ratio d c = setf d World_def.contact_damping_ratio c
-  let set_max_contact_push_speed d m = setf d World_def.max_contact_push_speed m
-  let set_joint_hertz d j = setf d World_def.joint_hertz j
-  let set_joint_damping_ratio d j = setf d World_def.joint_damping_ratio j
-  let set_maximum_linear_speed d m = setf d World_def.maximum_linear_speed m
-  let set_enable_sleep d e = setf d World_def.enable_sleep e
-  let set_enable_continuous d e = setf d World_def.enable_continuous e
-  let gravity d = getf d World_def.gravity
-  let restitution_threshold d = getf d World_def.restitution_threshold
-  let hit_event_threshold d = getf d World_def.hit_event_threshold
-  let contact_hertz d = getf d World_def.contact_hertz
-  let contact_damping_ratio d = getf d World_def.contact_damping_ratio
-  let max_contact_push_speed d = getf d World_def.max_contact_push_speed
-  let joint_hertz d = getf d World_def.joint_hertz
-  let joint_damping_ratio d = getf d World_def.joint_damping_ratio
-  let maximum_linear_speed d = getf d World_def.maximum_linear_speed
-  let enable_sleep d = getf d World_def.enable_sleep
-  let enable_continuous d = getf d World_def.enable_continuous
 end
 
 module Body_def = struct

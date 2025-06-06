@@ -67,16 +67,6 @@ module Types (F : Ctypes.TYPE) = struct
     let t = enum "b2JointType" ~typedef:true vals
   end
 
-  (* Ids *)
-  module World_id = struct
-    type t
-
-    let t : t Ctypes.structure typ = structure "b2WorldId"
-    let index1 = field t "index1" uint16_t
-    let generation = field t "generation" uint16_t
-    let () = seal t
-  end
-
   module Body_id = struct
     type t
 
@@ -310,33 +300,44 @@ module Types (F : Ctypes.TYPE) = struct
   let presolve_fcn =
     ptr Shape_id.t @-> ptr Shape_id.t @-> ptr Manifold.t @-> ptr void @-> returning bool
 
-  module World_def = struct
-    type t
+  module World = struct
+    module World_id = struct
+      type t
 
-    let t : t Ctypes.structure typ = structure "b2WorldDef"
-    let gravity = field t "gravity" Vec2.t
-    let restitution_threshold = field t "restitutionThreshold" float
-    let hit_event_threshold = field t "hitEventThreshold" float
-    let contact_hertz = field t "contactHertz" float
-    let contact_damping_ratio = field t "contactDampingRatio" float
-    let max_contact_push_speed = field t "maxContactPushSpeed" float
-    let joint_hertz = field t "jointHertz" float
-    let joint_damping_ratio = field t "jointDampingRatio" float
-    let maximum_linear_speed = field t "maximumLinearSpeed" float
-    let enable_sleep = field t "enableSleep" bool
-    let enable_continuous = field t "enableContinuous" bool
-    let worker_count = field t "workerCount" int
-    let user_task_context = field t "userTaskContext" (ptr void)
-    let user_data = field t "userData" (ptr void)
-    let internal_value = field t "internalValue" int
+      let t : t Ctypes.structure typ = structure "b2WorldId"
+      let index1 = field t "index1" uint16_t
+      let generation = field t "generation" uint16_t
+      let () = seal t
+    end
 
-    (*TODO: Test*)
-    (* callbacks *)
-    let friction_callback = field t "frictionCallback" friction_callback
-    let restitution_callback = field t "restitutionCallback" restitution_callback
-    let enqueue_task = field t "enqueueTask" enqueue_task_callback
-    let finish_task = field t "finishTask" finish_task_callback
-    let () = seal t
+    module World_def = struct
+      type t
+
+      let t : t Ctypes.structure typ = structure "b2WorldDef"
+      let gravity = field t "gravity" Vec2.t
+      let restitution_threshold = field t "restitutionThreshold" float
+      let hit_event_threshold = field t "hitEventThreshold" float
+      let contact_hertz = field t "contactHertz" float
+      let contact_damping_ratio = field t "contactDampingRatio" float
+      let max_contact_push_speed = field t "maxContactPushSpeed" float
+      let joint_hertz = field t "jointHertz" float
+      let joint_damping_ratio = field t "jointDampingRatio" float
+      let maximum_linear_speed = field t "maximumLinearSpeed" float
+      let enable_sleep = field t "enableSleep" bool
+      let enable_continuous = field t "enableContinuous" bool
+      let worker_count = field t "workerCount" int
+      let user_task_context = field t "userTaskContext" (ptr void)
+      let user_data = field t "userData" (ptr void)
+      let internal_value = field t "internalValue" int
+
+      (*TODO: Test*)
+      (* callbacks *)
+      let friction_callback = field t "frictionCallback" friction_callback
+      let restitution_callback = field t "restitutionCallback" restitution_callback
+      let enqueue_task = field t "enqueueTask" enqueue_task_callback
+      let finish_task = field t "finishTask" finish_task_callback
+      let () = seal t
+    end
   end
 
   module Body_def = struct

@@ -38,20 +38,22 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
   module World = struct
     (* TODO: 
-  let draw_world = foreign "b2World_Draw" (World_id.t @-> returning void)
+  let draw_world = foreign "b2World_Draw" (World.World_id.t @-> returning void)
   *)
-    let default_world_def = foreign "b2DefaultWorldDef" (void @-> returning World_def.t)
-    let create = foreign "b2CreateWorld" (ptr World_def.t @-> returning World_id.t)
-    let destroy = foreign "b2DestroyWorld" (World_id.t @-> returning void)
-    let is_valid = foreign "b2World_IsValid" (World_id.t @-> returning bool)
-    let step = foreign "b2World_Step" (World_id.t @-> float @-> int @-> returning void)
-    let get_body_events = foreign "b2World_GetBodyEvents" (World_id.t @-> returning Body_events.t)
+    let default_world_def = foreign "b2DefaultWorldDef" (void @-> returning World.World_def.t)
+    let create = foreign "b2CreateWorld" (ptr World.World_def.t @-> returning World.World_id.t)
+    let destroy = foreign "b2DestroyWorld" (World.World_id.t @-> returning void)
+    let is_valid = foreign "b2World_IsValid" (World.World_id.t @-> returning bool)
+    let step = foreign "b2World_Step" (World.World_id.t @-> float @-> int @-> returning void)
+
+    let get_body_events =
+      foreign "b2World_GetBodyEvents" (World.World_id.t @-> returning Body_events.t)
 
     let get_sensor_events =
-      foreign "b2World_GetSensorEvents" (World_id.t @-> returning Sensor_events.t)
+      foreign "b2World_GetSensorEvents" (World.World_id.t @-> returning Sensor_events.t)
 
     let get_contact_events =
-      foreign "b2World_GetContactEvents" (World_id.t @-> returning Contact_events.t)
+      foreign "b2World_GetContactEvents" (World.World_id.t @-> returning Contact_events.t)
 
     (* TODO:: these callback definitions and their counterparts in the shims.c file are a hack that simply gets the library compiled.
        It needs a lot of attention*)
@@ -59,7 +61,7 @@ module Functions (F : Ctypes.FOREIGN) = struct
     (* C wrapper created in overlap_shim.c. Takes the pointer-style callback in types.ml, so ctypes is happy. *)
     let overlap_aabb =
       foreign "b2World_OverlapAABB_wrap"
-        (World_id.t
+        (World.World_id.t
         @-> AABB.t
         @-> Query_filter.t
         @-> Foreign.funptr overlap_cb
@@ -68,7 +70,7 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     let overlap_shape =
       foreign "b2World_OverlapShape_wrap"
-        (World_id.t
+        (World.World_id.t
         @-> ptr Shape_proxy.t
         @-> Query_filter.t
         @-> Foreign.funptr overlap_cb
@@ -77,7 +79,7 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     let cast_ray =
       foreign "b2World_CastRay_wrap"
-        (World_id.t
+        (World.World_id.t
         @-> Vec2.t
         @-> Vec2.t
         @-> Query_filter.t
@@ -87,11 +89,11 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     let cast_ray_closest =
       foreign "b2World_CastRayClosest"
-        (World_id.t @-> Vec2.t @-> Vec2.t @-> Query_filter.t @-> returning Ray_result.t)
+        (World.World_id.t @-> Vec2.t @-> Vec2.t @-> Query_filter.t @-> returning Ray_result.t)
 
     let cast_shape =
       foreign "b2World_CastShape_wrap"
-        (World_id.t
+        (World.World_id.t
         @-> ptr Shape_proxy.t
         @-> Vec2.t
         @-> Query_filter.t
@@ -101,96 +103,111 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     let cast_mover =
       foreign "b2World_CastMover"
-        (World_id.t @-> ptr Capsule.t @-> Vec2.t @-> Query_filter.t @-> returning float)
+        (World.World_id.t @-> ptr Capsule.t @-> Vec2.t @-> Query_filter.t @-> returning float)
 
     let collide_mover =
       foreign "b2World_CollideMover_wrap"
-        (World_id.t
+        (World.World_id.t
         @-> ptr Capsule.t
         @-> Query_filter.t
         @-> Foreign.funptr plane_result_fcn
         @-> ptr void
         @-> returning void)
 
-    let enable_sleeping = foreign "b2World_EnableSleeping" (World_id.t @-> bool @-> returning void)
-    let is_sleeping_enabled = foreign "b2World_IsSleepingEnabled" (World_id.t @-> returning bool)
+    let enable_sleeping =
+      foreign "b2World_EnableSleeping" (World.World_id.t @-> bool @-> returning void)
+
+    let is_sleeping_enabled =
+      foreign "b2World_IsSleepingEnabled" (World.World_id.t @-> returning bool)
 
     let enable_continuous =
-      foreign "b2World_EnableContinuous" (World_id.t @-> bool @-> returning void)
+      foreign "b2World_EnableContinuous" (World.World_id.t @-> bool @-> returning void)
 
-    let is_continuous_enabled = foreign "b2World_IsContinuousEnabled" (World_id.t @-> returning bool)
+    let is_continuous_enabled =
+      foreign "b2World_IsContinuousEnabled" (World.World_id.t @-> returning bool)
 
     let set_restitution_threshold =
-      foreign "b2World_SetRestitutionThreshold" (World_id.t @-> float @-> returning void)
+      foreign "b2World_SetRestitutionThreshold" (World.World_id.t @-> float @-> returning void)
 
     let get_restitution_threshold =
-      foreign "b2World_GetRestitutionThreshold" (World_id.t @-> returning float)
+      foreign "b2World_GetRestitutionThreshold" (World.World_id.t @-> returning float)
 
     let set_hit_event_threshold =
-      foreign "b2World_SetHitEventThreshold" (World_id.t @-> float @-> returning void)
+      foreign "b2World_SetHitEventThreshold" (World.World_id.t @-> float @-> returning void)
 
     let get_hit_event_threshold =
-      foreign "b2World_GetHitEventThreshold" (World_id.t @-> returning float)
+      foreign "b2World_GetHitEventThreshold" (World.World_id.t @-> returning float)
 
     let set_custom_filter_callback =
       foreign "b2World_SetCustomFilterCallback_wrap"
-        (World_id.t @-> Foreign.funptr custom_filter_fcn @-> ptr void @-> returning void)
+        (World.World_id.t @-> Foreign.funptr custom_filter_fcn @-> ptr void @-> returning void)
 
     let set_presolve_callback =
       foreign "b2World_SetPreSolveCallback_wrap"
-        (World_id.t @-> Foreign.funptr presolve_fcn @-> ptr void @-> returning void)
+        (World.World_id.t @-> Foreign.funptr presolve_fcn @-> ptr void @-> returning void)
 
-    let set_gravity = foreign "b2World_SetGravity" (World_id.t @-> Vec2.t @-> returning void)
-    let get_graviy = foreign "b2World_GetGravity" (World_id.t @-> returning Vec2.t)
+    let set_gravity = foreign "b2World_SetGravity" (World.World_id.t @-> Vec2.t @-> returning void)
+    let get_graviy = foreign "b2World_GetGravity" (World.World_id.t @-> returning Vec2.t)
 
     let world_explode =
-      foreign "b2World_Explode" (World_id.t @-> ptr Explosion_def.t @-> returning void)
+      foreign "b2World_Explode" (World.World_id.t @-> ptr Explosion_def.t @-> returning void)
 
     let set_contact_tuning =
       foreign "b2World_SetContactTuning"
-        (World_id.t @-> float @-> float @-> float @-> returning void)
+        (World.World_id.t @-> float @-> float @-> float @-> returning void)
 
     let set_maximum_linear_speed =
-      foreign "b2World_SetMaximumLinearSpeed" (World_id.t @-> float @-> returning void)
+      foreign "b2World_SetMaximumLinearSpeed" (World.World_id.t @-> float @-> returning void)
 
     let get_maximum_linear_speed =
-      foreign "b2World_GetMaximumLinearSpeed" (World_id.t @-> returning float)
+      foreign "b2World_GetMaximumLinearSpeed" (World.World_id.t @-> returning float)
 
     let enable_warm_starting =
-      foreign "b2World_EnableWarmStarting" (World_id.t @-> bool @-> returning void)
+      foreign "b2World_EnableWarmStarting" (World.World_id.t @-> bool @-> returning void)
 
     let is_warm_starting_enabled =
-      foreign "b2World_IsWarmStartingEnabled" (World_id.t @-> returning bool)
+      foreign "b2World_IsWarmStartingEnabled" (World.World_id.t @-> returning bool)
 
-    let get_awake_body_count = foreign "b2World_GetAwakeBodyCount" (World_id.t @-> returning int)
-    let get_profile = foreign "b2World_GetProfile" (World_id.t @-> returning Profile.t)
-    let get_counters = foreign "b2World_GetCounters" (World_id.t @-> returning Counters.t)
-    let set_user_data = foreign "b2World_SetUserData" (World_id.t @-> ptr void @-> returning void)
-    let get_user_data = foreign "b2World_GetUserData" (World_id.t @-> returning void)
+    let get_awake_body_count =
+      foreign "b2World_GetAwakeBodyCount" (World.World_id.t @-> returning int)
+
+    let get_profile = foreign "b2World_GetProfile" (World.World_id.t @-> returning Profile.t)
+    let get_counters = foreign "b2World_GetCounters" (World.World_id.t @-> returning Counters.t)
+
+    let set_user_data =
+      foreign "b2World_SetUserData" (World.World_id.t @-> ptr void @-> returning void)
+
+    let get_user_data = foreign "b2World_GetUserData" (World.World_id.t @-> returning void)
 
     (** Set the friction callback. Passing NULL resets to default. *)
     let set_friction_callback =
-      foreign "b2World_SetFrictionCallback" (World_id.t @-> friction_callback @-> returning void)
+      foreign "b2World_SetFrictionCallback"
+        (World.World_id.t @-> friction_callback @-> returning void)
 
     (** Set the restitution callback. Passing NULL resets to default. *)
     let set_restitution_callback =
       foreign "b2World_SetRestitutionCallback"
-        (World_id.t @-> restitution_callback @-> returning void)
+        (World.World_id.t @-> restitution_callback @-> returning void)
 
     (** Dump memory stats to box2d_memory.txt *)
-    let dump_memory_stats = foreign "b2World_DumpMemoryStats" (World_id.t @-> returning void)
+    let dump_memory_stats = foreign "b2World_DumpMemoryStats" (World.World_id.t @-> returning void)
 
     (** This is for internal testing *)
-    let rebuild_static_tree = foreign "b2World_RebuildStaticTree" (World_id.t @-> returning void)
+    let rebuild_static_tree =
+      foreign "b2World_RebuildStaticTree" (World.World_id.t @-> returning void)
 
     (** This is for internal testing *)
     let enable_speculative =
-      foreign "b2World_EnableSpeculative" (World_id.t @-> bool @-> returning void)
+      foreign "b2World_EnableSpeculative" (World.World_id.t @-> bool @-> returning void)
   end
 
   module Body = struct
     let default_body_def = foreign "b2DefaultBodyDef" (void @-> returning Body_def.t)
-    let create = foreign "b2CreateBody" (World_id.t @-> ptr Body_def.t @-> returning Body_id.t)
+
+    let create =
+      foreign "b2CreateBody"
+        (Box2d_types_generated.World.World_id.t @-> ptr Body_def.t @-> returning Body_id.t)
+
     let destory = foreign "b2DestroyBody" (Body_id.t @-> returning void)
     let body_is_valid = foreign "b2Body_IsValid" (Body_id.t @-> returning bool)
     let get_type = foreign "b2Body_GetType" (Body_id.t @-> returning Body_type.t)
@@ -301,7 +318,10 @@ module Functions (F : Ctypes.FOREIGN) = struct
       foreign "b2Body_EnableContactEvents" (Body_id.t @-> bool @-> returning void)
 
     let enable_hit_events = foreign "b2Body_EnableHitEvents" (Body_id.t @-> bool @-> returning void)
-    let get_world = foreign "b2Body_GetWorld" (Body_id.t @-> returning World_id.t)
+
+    let get_world =
+      foreign "b2Body_GetWorld" (Body_id.t @-> returning Box2d_types_generated.World.World_id.t)
+
     let get_shape_count = foreign "b2Body_GetShapeCount" (Body_id.t @-> returning int)
 
     let get_shapes =
@@ -341,7 +361,10 @@ module Functions (F : Ctypes.FOREIGN) = struct
     let is_valid = foreign "b2Shape_IsValid" (Shape_id.t @-> returning bool)
     let get_type = foreign "b2Shape_GetType" (Shape_id.t @-> returning Shape_type.t)
     let get_body = foreign "b2Shape_GetBody" (Shape_id.t @-> returning Body_id.t)
-    let get_world = foreign "b2Shape_GetWorld" (Shape_id.t @-> returning World_id.t)
+
+    let get_world =
+      foreign "b2Shape_GetWorld" (Shape_id.t @-> returning Box2d_types_generated.World.World_id.t)
+
     let is_sensor = foreign "b2Shape_IsSensor" (Shape_id.t @-> returning bool)
     let set_user_data = foreign "b2Shape_SetUserData" (Shape_id.t @-> ptr void @-> returning void)
     let get_user_data = foreign "b2Shape_GetUserData" (Shape_id.t @-> returning @@ ptr void)
@@ -426,7 +449,10 @@ module Functions (F : Ctypes.FOREIGN) = struct
         foreign "b2CreateChain" (Body_id.t @-> ptr Chain_def.t @-> returning Chain_id.t)
 
       let destroy_chain = foreign "b2DestroyChain" (Chain_id.t @-> returning void)
-      let get_world = foreign "b2Chain_GetWorld" (Chain_id.t @-> returning World_id.t)
+
+      let get_world =
+        foreign "b2Chain_GetWorld" (Chain_id.t @-> returning Box2d_types_generated.World.World_id.t)
+
       let get_segment_count = foreign "b2Chain_GetSegmentCount" (Chain_id.t @-> returning int)
 
       let get_segments =
@@ -450,7 +476,10 @@ module Functions (F : Ctypes.FOREIGN) = struct
       let get_type = foreign "b2Joint_GetType" (Joint_id.t @-> returning Joint_type.t)
       let get_body_a = foreign "b2Joint_GetBodyA" (Joint_id.t @-> returning Body_id.t)
       let get_body_b = foreign "b2Joint_GetBodyB" (Joint_id.t @-> returning Body_id.t)
-      let get_world = foreign "b2Joint_GetWorld" (Joint_id.t @-> returning World_id.t)
+
+      let get_world =
+        foreign "b2Joint_GetWorld" (Joint_id.t @-> returning Box2d_types_generated.World.World_id.t)
+
       let get_local_anchor_a = foreign "b2Joint_GetLocalAnchorA" (Joint_id.t @-> returning Vec2.t)
       let get_local_anchor_b = foreign "b2Joint_GetLocalAnchorB" (Joint_id.t @-> returning Vec2.t)
 
@@ -474,7 +503,9 @@ module Functions (F : Ctypes.FOREIGN) = struct
     module Distance_joint = struct
       let create_distance_joint =
         foreign "b2CreateDistanceJoint"
-          (World_id.t @-> ptr Distance_joint_def.t @-> returning Joint_id.t)
+          (Box2d_types_generated.World.World_id.t
+          @-> ptr Distance_joint_def.t
+          @-> returning Joint_id.t)
 
       let set_length = foreign "b2DistanceJoint_SetLength" (Joint_id.t @-> float @-> returning void)
       let get_length = foreign "b2DistanceJoint_GetLength" (Joint_id.t @-> returning float)
@@ -532,7 +563,8 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     module Motor_joint = struct
       let create_motor_joint =
-        foreign "b2CreateMotorJoint" (World_id.t @-> ptr Motor_joint_def.t @-> returning Joint_id.t)
+        foreign "b2CreateMotorJoint"
+          (Box2d_types_generated.World.World_id.t @-> ptr Motor_joint_def.t @-> returning Joint_id.t)
 
       let set_linear_offset =
         foreign "b2MotorJoint_SetLinearOffset" (Joint_id.t @-> Vec2.t @-> returning void)
@@ -565,7 +597,8 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     module Mouse_joint = struct
       let create_mouse_joint =
-        foreign "b2CreateMouseJoint" (World_id.t @-> ptr Mouse_joint_def.t @-> returning Joint_id.t)
+        foreign "b2CreateMouseJoint"
+          (Box2d_types_generated.World.World_id.t @-> ptr Mouse_joint_def.t @-> returning Joint_id.t)
 
       let set_target = foreign "b2MouseJoint_SetTarget" (Joint_id.t @-> Vec2.t @-> returning void)
       let get_target = foreign "b2MouseJoint_GetTarget" (Joint_id.t @-> returning Vec2.t)
@@ -590,13 +623,17 @@ module Functions (F : Ctypes.FOREIGN) = struct
     module Filter_joint = struct
       let create_filter_joint =
         foreign "b2CreateFilterJoint"
-          (World_id.t @-> ptr Filter_joint_def.t @-> returning Joint_id.t)
+          (Box2d_types_generated.World.World_id.t
+          @-> ptr Filter_joint_def.t
+          @-> returning Joint_id.t)
     end
 
     module Prismatic_joint = struct
       let create_prismatic_filter_joint =
         foreign "b2CreatePrismaticJoint"
-          (World_id.t @-> ptr Prismatic_join_def.t @-> returning Joint_id.t)
+          (Box2d_types_generated.World.World_id.t
+          @-> ptr Prismatic_join_def.t
+          @-> returning Joint_id.t)
 
       let enable_spring =
         foreign "b2PrismaticJoint_EnableSpring" (Joint_id.t @-> bool @-> returning void)
@@ -662,7 +699,9 @@ module Functions (F : Ctypes.FOREIGN) = struct
     module Revolute_joint = struct
       let create_revolute_joint =
         foreign "b2CreateRevoluteJoint"
-          (World_id.t @-> ptr Revolute_joint_def.t @-> returning Joint_id.t)
+          (Box2d_types_generated.World.World_id.t
+          @-> ptr Revolute_joint_def.t
+          @-> returning Joint_id.t)
 
       let enable_spring =
         foreign "b2RevoluteJoint_EnableSpring" (Joint_id.t @-> bool @-> returning void)
@@ -722,7 +761,8 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     module Weld_joint = struct
       let create_weld_joint =
-        foreign "b2CreateWeldJoint" (World_id.t @-> ptr Weld_joint_def.t @-> returning Joint_id.t)
+        foreign "b2CreateWeldJoint"
+          (Box2d_types_generated.World.World_id.t @-> ptr Weld_joint_def.t @-> returning Joint_id.t)
 
       let set_linear_hertz =
         foreign "b2WeldJoint_SetLinearHertz" (Joint_id.t @-> float @-> returning void)
@@ -749,7 +789,8 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
     module Wheel_joint = struct
       let create_wheel_joint =
-        foreign "b2CreateWheelJoint" (World_id.t @-> ptr Wheel_joint_def.t @-> returning Joint_id.t)
+        foreign "b2CreateWheelJoint"
+          (Box2d_types_generated.World.World_id.t @-> ptr Wheel_joint_def.t @-> returning Joint_id.t)
 
       let enable_spring =
         foreign "b2WheelJoint_EnableSpring" (Joint_id.t @-> bool @-> returning void)
