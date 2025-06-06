@@ -197,13 +197,6 @@ module Joint_id : sig
   val t : t Ctypes.typ
 end
 
-module Body_id : sig
-  type t' = Box2d_c.Types.Body_id.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
 module Shape_id : sig
   type t' = Box2d_c.Types.Shape_id.t
   type t = t' ctyp
@@ -228,14 +221,6 @@ module Shape_proxy : sig
   val t : t Ctypes.typ
 end
 
-module Body_type : sig
-  type t =
-    | Static
-    | Kinematic
-    | Dynamic
-    | BodyTypeCount
-end
-
 module Shape_type : sig
   type t =
     | Circle
@@ -256,73 +241,6 @@ module Joint_type : sig
     | Revolute
     | Weld
     | Wheel
-end
-
-module Body_def : sig
-  type t' = Box2d_c.Types.Body_def.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val default : unit -> t
-
-  val create :
-    ?type_:Body_type.t ->
-    ?position:Vec2.t ->
-    ?rotation:Rot.t ->
-    ?linear_velocity:Vec2.t ->
-    ?angular_velocity:float ->
-    ?linear_damping:float ->
-    ?angular_damping:float ->
-    ?gravity_scale:float ->
-    ?sleep_threshold:float ->
-    ?name:char Ctypes_static.ptr ->
-    ?user_data:unit Ctypes_static.ptr ->
-    ?enable_sleep:bool ->
-    ?is_awake:bool ->
-    ?fixed_rotation:bool ->
-    ?is_bullet:bool ->
-    ?is_enabled:bool ->
-    ?allow_fast_rotation:bool ->
-    ?internal_value:int ->
-    unit ->
-    t
-
-  val set_type : t -> Body_type.t -> unit
-  val set_position : t -> Vec2.t -> unit
-  val set_rotation : t -> Rot.t -> unit
-  val set_linear_velocity : t -> Vec2.t -> unit
-  val set_angular_velocity : t -> float -> unit
-  val set_linear_damping : t -> float -> unit
-  val set_angular_damping : t -> float -> unit
-  val set_gravity_scale : t -> float -> unit
-  val set_sleep_threshold : t -> float -> unit
-  val set_name : t -> char Ctypes_static.ptr -> unit
-  val set_user_data : t -> unit Ctypes_static.ptr -> unit
-  val set_enable_sleep : t -> bool -> unit
-  val set_is_awake : t -> bool -> unit
-  val set_fixed_rotation : t -> bool -> unit
-  val set_is_bullet : t -> bool -> unit
-  val set_is_enabled : t -> bool -> unit
-  val set_allow_fast_rotation : t -> bool -> unit
-  val set_internal_value : t -> int -> unit
-  val type_ : t -> Body_type.t
-  val position : t -> Vec2.t
-  val rotation : t -> Rot.t
-  val linear_velocity : t -> Vec2.t
-  val angular_velocity : t -> float
-  val linear_damping : t -> float
-  val angular_damping : t -> float
-  val gravity_scale : t -> float
-  val sleep_threshold : t -> float
-  val name : t -> char Ctypes_static.ptr
-  val user_data : t -> unit Ctypes_static.ptr
-  val enable_sleep : t -> bool
-  val is_awake : t -> bool
-  val fixed_rotation : t -> bool
-  val is_bullet : t -> bool
-  val is_enabled : t -> bool
-  val allow_fast_rotation : t -> bool
-  val internal_value : t -> int
 end
 
 module Motor_joint_def : sig
@@ -820,6 +738,88 @@ module World : sig
 end
 
 module Body : sig
+  module Body_type : sig
+    type t =
+      | Static
+      | Kinematic
+      | Dynamic
+      | BodyTypeCount
+  end
+
+  module Body_id : sig
+    type t' = Box2d_c.Types.Body_id.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+  end
+
+  module Body_def : sig
+    type t' = Box2d_c.Types.Body_def.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val default : unit -> t
+
+    val create :
+      ?type_:Body_type.t ->
+      ?position:Vec2.t ->
+      ?rotation:Rot.t ->
+      ?linear_velocity:Vec2.t ->
+      ?angular_velocity:float ->
+      ?linear_damping:float ->
+      ?angular_damping:float ->
+      ?gravity_scale:float ->
+      ?sleep_threshold:float ->
+      ?name:char Ctypes_static.ptr ->
+      ?user_data:unit Ctypes_static.ptr ->
+      ?enable_sleep:bool ->
+      ?is_awake:bool ->
+      ?fixed_rotation:bool ->
+      ?is_bullet:bool ->
+      ?is_enabled:bool ->
+      ?allow_fast_rotation:bool ->
+      ?internal_value:int ->
+      unit ->
+      t
+
+    val set_type : t -> Body_type.t -> unit
+    val set_position : t -> Vec2.t -> unit
+    val set_rotation : t -> Rot.t -> unit
+    val set_linear_velocity : t -> Vec2.t -> unit
+    val set_angular_velocity : t -> float -> unit
+    val set_linear_damping : t -> float -> unit
+    val set_angular_damping : t -> float -> unit
+    val set_gravity_scale : t -> float -> unit
+    val set_sleep_threshold : t -> float -> unit
+    val set_name : t -> char Ctypes_static.ptr -> unit
+    val set_user_data : t -> unit Ctypes_static.ptr -> unit
+    val set_enable_sleep : t -> bool -> unit
+    val set_is_awake : t -> bool -> unit
+    val set_fixed_rotation : t -> bool -> unit
+    val set_is_bullet : t -> bool -> unit
+    val set_is_enabled : t -> bool -> unit
+    val set_allow_fast_rotation : t -> bool -> unit
+    val set_internal_value : t -> int -> unit
+    val type_ : t -> Body_type.t
+    val position : t -> Vec2.t
+    val rotation : t -> Rot.t
+    val linear_velocity : t -> Vec2.t
+    val angular_velocity : t -> float
+    val linear_damping : t -> float
+    val angular_damping : t -> float
+    val gravity_scale : t -> float
+    val sleep_threshold : t -> float
+    val name : t -> char Ctypes_static.ptr
+    val user_data : t -> unit Ctypes_static.ptr
+    val enable_sleep : t -> bool
+    val is_awake : t -> bool
+    val fixed_rotation : t -> bool
+    val is_bullet : t -> bool
+    val is_enabled : t -> bool
+    val allow_fast_rotation : t -> bool
+    val internal_value : t -> int
+  end
+
   val default_body_def : unit -> Body_def.t
 
   val create : World.World_id.t -> Body_def.t Ctypes_static.ptr -> Body_id.t
@@ -828,7 +828,7 @@ module Body : sig
 
       warning: This function is locked during callbacks. *)
 
-  val destory : Body_id.t -> unit
+  val destroy : Body_id.t -> unit
   (** Destroy a rigid body given an id. This destroys all shapes and joints attached to the body. Do
       not keep references to the associated shapes and joints. *)
 
@@ -1102,8 +1102,13 @@ end
 (** Functions to create, destroy, and access. Shapes bind raw geometry to bodies and hold material
     properties including friction and restitution. *)
 module Shape : sig
+  open Body
+
   val create_circle :
-    Body_id.t -> Shape_def.t Ctypes_static.ptr -> Geometry.Circle.t Ctypes_static.ptr -> Shape_id.t
+    Body.Body_id.t ->
+    Shape_def.t Ctypes_static.ptr ->
+    Geometry.Circle.t Ctypes_static.ptr ->
+    Shape_id.t
   (** Create a circle shape and attach it to a body. The shape definition and geometry are fully
       cloned. Contacts are not created until the next time step.
       @return the shape id for accessing the shape *)

@@ -5,7 +5,6 @@ open Box2d_c.Types
 
 type 'a ctyp = 'a Ctypes.structure
 
-module Body_type = Body_type
 module Shape_type = Shape_type
 module Joint_type = Joint_type
 
@@ -253,11 +252,101 @@ module World = struct
   end
 end
 
-module Body_id = struct
-  type t' = Body_id.t
-  type t = t' ctyp
+module Body = struct
+  module Body_type = Body_type
 
-  let t = Body_id.t
+  module Body_id = struct
+    type t' = Body_id.t
+    type t = t' ctyp
+
+    let t = Body_id.t
+  end
+
+  module Body_def = struct
+    type t' = Body_def.t
+    type t = t' ctyp
+
+    let t = Body_def.t
+    let default = Functions.Body.default_body_def
+
+    let create
+        ?type_
+        ?position
+        ?rotation
+        ?linear_velocity
+        ?angular_velocity
+        ?linear_damping
+        ?angular_damping
+        ?gravity_scale
+        ?sleep_threshold
+        ?name
+        ?user_data
+        ?enable_sleep
+        ?is_awake
+        ?fixed_rotation
+        ?is_bullet
+        ?is_enabled
+        ?allow_fast_rotation
+        ?internal_value
+        () =
+      let def = Functions.Body.default_body_def () in
+      Option.iter (fun x -> setf def Body_def.type_ x) type_;
+      Option.iter (fun x -> setf def Body_def.position x) position;
+      Option.iter (fun x -> setf def Body_def.rotation x) rotation;
+      Option.iter (fun x -> setf def Body_def.linear_velocity x) linear_velocity;
+      Option.iter (fun x -> setf def Body_def.angular_velocity x) angular_velocity;
+      Option.iter (fun x -> setf def Body_def.linear_damping x) linear_damping;
+      Option.iter (fun x -> setf def Body_def.angular_damping x) angular_damping;
+      Option.iter (fun x -> setf def Body_def.gravity_scale x) gravity_scale;
+      Option.iter (fun x -> setf def Body_def.sleep_threshold x) sleep_threshold;
+      Option.iter (fun x -> setf def Body_def.name x) name;
+      Option.iter (fun x -> setf def Body_def.user_data x) user_data;
+      Option.iter (fun x -> setf def Body_def.enable_sleep x) enable_sleep;
+      Option.iter (fun x -> setf def Body_def.is_awake x) is_awake;
+      Option.iter (fun x -> setf def Body_def.fixed_rotation x) fixed_rotation;
+      Option.iter (fun x -> setf def Body_def.is_bullet x) is_bullet;
+      Option.iter (fun x -> setf def Body_def.is_enabled x) is_enabled;
+      Option.iter (fun x -> setf def Body_def.allow_fast_rotation x) allow_fast_rotation;
+      Option.iter (fun x -> setf def Body_def.internal_value x) internal_value;
+      def
+
+    let set_type b t = setf b Body_def.type_ t
+    let set_position b p = setf b Body_def.position p
+    let set_rotation b r = setf b Body_def.rotation r
+    let set_linear_velocity b l = setf b Body_def.linear_velocity l
+    let set_angular_velocity b a = setf b Body_def.angular_velocity a
+    let set_linear_damping b l = setf b Body_def.linear_damping l
+    let set_angular_damping b a = setf b Body_def.angular_damping a
+    let set_gravity_scale b g = setf b Body_def.gravity_scale g
+    let set_sleep_threshold b s = setf b Body_def.sleep_threshold s
+    let set_name b n = setf b Body_def.name n
+    let set_user_data b u = setf b Body_def.user_data u
+    let set_enable_sleep b e = setf b Body_def.enable_sleep e
+    let set_is_awake b a = setf b Body_def.is_awake a
+    let set_fixed_rotation b f = setf b Body_def.fixed_rotation f
+    let set_is_bullet b i = setf b Body_def.is_bullet i
+    let set_is_enabled b i = setf b Body_def.is_enabled i
+    let set_allow_fast_rotation b a = setf b Body_def.allow_fast_rotation a
+    let set_internal_value b i = setf b Body_def.internal_value i
+    let type_ b = getf b Body_def.type_
+    let position b = getf b Body_def.position
+    let rotation b = getf b Body_def.rotation
+    let linear_velocity b = getf b Body_def.linear_velocity
+    let angular_velocity b = getf b Body_def.angular_velocity
+    let linear_damping b = getf b Body_def.linear_damping
+    let angular_damping b = getf b Body_def.angular_damping
+    let gravity_scale b = getf b Body_def.gravity_scale
+    let sleep_threshold b = getf b Body_def.sleep_threshold
+    let name b = getf b Body_def.name
+    let user_data b = getf b Body_def.user_data
+    let enable_sleep b = getf b Body_def.enable_sleep
+    let is_awake b = getf b Body_def.is_awake
+    let fixed_rotation b = getf b Body_def.fixed_rotation
+    let is_bullet b = getf b Body_def.is_bullet
+    let is_enabled b = getf b Body_def.is_enabled
+    let allow_fast_rotation b = getf b Body_def.allow_fast_rotation
+    let internal_value b = getf b Body_def.internal_value
+  end
 end
 
 module Shape_id = struct
@@ -289,92 +378,6 @@ module Shape_proxy = struct
   type t = t' ctyp
 
   let t = Shape_proxy.t
-end
-
-module Body_def = struct
-  type t' = Body_def.t
-  type t = t' ctyp
-
-  let t = Body_def.t
-  let default = Functions.Body.default_body_def
-
-  let create
-      ?type_
-      ?position
-      ?rotation
-      ?linear_velocity
-      ?angular_velocity
-      ?linear_damping
-      ?angular_damping
-      ?gravity_scale
-      ?sleep_threshold
-      ?name
-      ?user_data
-      ?enable_sleep
-      ?is_awake
-      ?fixed_rotation
-      ?is_bullet
-      ?is_enabled
-      ?allow_fast_rotation
-      ?internal_value
-      () =
-    let def = Functions.Body.default_body_def () in
-    Option.iter (fun x -> setf def Body_def.type_ x) type_;
-    Option.iter (fun x -> setf def Body_def.position x) position;
-    Option.iter (fun x -> setf def Body_def.rotation x) rotation;
-    Option.iter (fun x -> setf def Body_def.linear_velocity x) linear_velocity;
-    Option.iter (fun x -> setf def Body_def.angular_velocity x) angular_velocity;
-    Option.iter (fun x -> setf def Body_def.linear_damping x) linear_damping;
-    Option.iter (fun x -> setf def Body_def.angular_damping x) angular_damping;
-    Option.iter (fun x -> setf def Body_def.gravity_scale x) gravity_scale;
-    Option.iter (fun x -> setf def Body_def.sleep_threshold x) sleep_threshold;
-    Option.iter (fun x -> setf def Body_def.name x) name;
-    Option.iter (fun x -> setf def Body_def.user_data x) user_data;
-    Option.iter (fun x -> setf def Body_def.enable_sleep x) enable_sleep;
-    Option.iter (fun x -> setf def Body_def.is_awake x) is_awake;
-    Option.iter (fun x -> setf def Body_def.fixed_rotation x) fixed_rotation;
-    Option.iter (fun x -> setf def Body_def.is_bullet x) is_bullet;
-    Option.iter (fun x -> setf def Body_def.is_enabled x) is_enabled;
-    Option.iter (fun x -> setf def Body_def.allow_fast_rotation x) allow_fast_rotation;
-    Option.iter (fun x -> setf def Body_def.internal_value x) internal_value;
-    def
-
-  let set_type b t = setf b Body_def.type_ t
-  let set_position b p = setf b Body_def.position p
-  let set_rotation b r = setf b Body_def.rotation r
-  let set_linear_velocity b l = setf b Body_def.linear_velocity l
-  let set_angular_velocity b a = setf b Body_def.angular_velocity a
-  let set_linear_damping b l = setf b Body_def.linear_damping l
-  let set_angular_damping b a = setf b Body_def.angular_damping a
-  let set_gravity_scale b g = setf b Body_def.gravity_scale g
-  let set_sleep_threshold b s = setf b Body_def.sleep_threshold s
-  let set_name b n = setf b Body_def.name n
-  let set_user_data b u = setf b Body_def.user_data u
-  let set_enable_sleep b e = setf b Body_def.enable_sleep e
-  let set_is_awake b a = setf b Body_def.is_awake a
-  let set_fixed_rotation b f = setf b Body_def.fixed_rotation f
-  let set_is_bullet b i = setf b Body_def.is_bullet i
-  let set_is_enabled b i = setf b Body_def.is_enabled i
-  let set_allow_fast_rotation b a = setf b Body_def.allow_fast_rotation a
-  let set_internal_value b i = setf b Body_def.internal_value i
-  let type_ b = getf b Body_def.type_
-  let position b = getf b Body_def.position
-  let rotation b = getf b Body_def.rotation
-  let linear_velocity b = getf b Body_def.linear_velocity
-  let angular_velocity b = getf b Body_def.angular_velocity
-  let linear_damping b = getf b Body_def.linear_damping
-  let angular_damping b = getf b Body_def.angular_damping
-  let gravity_scale b = getf b Body_def.gravity_scale
-  let sleep_threshold b = getf b Body_def.sleep_threshold
-  let name b = getf b Body_def.name
-  let user_data b = getf b Body_def.user_data
-  let enable_sleep b = getf b Body_def.enable_sleep
-  let is_awake b = getf b Body_def.is_awake
-  let fixed_rotation b = getf b Body_def.fixed_rotation
-  let is_bullet b = getf b Body_def.is_bullet
-  let is_enabled b = getf b Body_def.is_enabled
-  let allow_fast_rotation b = getf b Body_def.allow_fast_rotation
-  let internal_value b = getf b Body_def.internal_value
 end
 
 module Distance_joint_def = struct

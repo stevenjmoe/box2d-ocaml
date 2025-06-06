@@ -208,7 +208,7 @@ module Functions (F : Ctypes.FOREIGN) = struct
       foreign "b2CreateBody"
         (Box2d_types_generated.World.World_id.t @-> ptr Body_def.t @-> returning Body_id.t)
 
-    let destory = foreign "b2DestroyBody" (Body_id.t @-> returning void)
+    let destroy = foreign "b2DestroyBody" (Body_id.t @-> returning void)
     let body_is_valid = foreign "b2Body_IsValid" (Body_id.t @-> returning bool)
     let get_type = foreign "b2Body_GetType" (Body_id.t @-> returning Body_type.t)
     let set_type = foreign "b2Body_SetType" (Body_id.t @-> Body_type.t @-> returning void)
