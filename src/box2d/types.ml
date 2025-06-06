@@ -84,6 +84,48 @@ end
 module Geometry = struct
   let make_box = Functions.make_box
 
+  module Ray_cast_input = struct
+    type t' = Ray_cast_input.t
+    type t = t' ctyp
+
+    let t = Ray_cast_input.t
+    let max_fraction r = getf r Ray_cast_input.max_fraction
+    let origin r = getf r Ray_cast_input.origin
+    let translation r = getf r Ray_cast_input.translation
+  end
+
+  module Shape_proxy = struct
+    type t' = Shape_proxy.t
+    type t = t' ctyp
+
+    let t = Shape_proxy.t
+    let count s = getf s Shape_proxy.count
+    let points s = getf s Shape_proxy.points
+    let radius s = getf s Shape_proxy.radius
+  end
+
+  module Cast_output = struct
+    type t' = Cast_output.t
+    type t = t' ctyp
+
+    let t = Cast_output.t
+    let hit c = getf c Cast_output.hit
+    let fraction c = getf c Cast_output.fraction
+    let iterations c = getf c Cast_output.iterations
+    let normal c = getf c Cast_output.normal
+    let point c = getf c Cast_output.point
+  end
+
+  module Mass_data = struct
+    type t' = Mass_data.t
+    type t = t' ctyp
+
+    let t = Mass_data.t
+    let center c = getf c Mass_data.center
+    let mass c = getf c Mass_data.mass
+    let rotational_inertia c = getf c Mass_data.rotational_inertia
+  end
+
   module Circle = struct
     type t' = Circle.t
     type t = t' ctyp
@@ -165,20 +207,6 @@ module Geometry = struct
     let ghost2 c = getf c Chain_segment.ghost2
     let segment c = getf c Chain_segment.segment
   end
-end
-
-module Ray_cast_input = struct
-  type t' = Ray_cast_input.t
-  type t = t' ctyp
-
-  let t = Ray_cast_input.t
-end
-
-module Cast_output = struct
-  type t' = Cast_output.t
-  type t = t' ctyp
-
-  let t = Cast_output.t
 end
 
 module World = struct
@@ -373,13 +401,6 @@ module Joint_id = struct
   let t = Joint_id.t
 end
 
-module Shape_proxy = struct
-  type t' = Shape_proxy.t
-  type t = t' ctyp
-
-  let t = Shape_proxy.t
-end
-
 module Distance_joint_def = struct
   type t' = Distance_joint_def.t
   type t = t' ctyp
@@ -441,6 +462,12 @@ module Filter = struct
   type t = t' ctyp
 
   let t = Filter.t
+  let category_bits f = getf f Filter.category_bits
+  let group_index f = getf f Filter.group_index
+  let mask_bits f = getf f Filter.mask_bits
+  let set_category_bits f c = setf f Filter.category_bits c
+  let set_group_index f g = setf f Filter.group_index g
+  let set_mask_bits f m = setf f Filter.mask_bits m
 end
 
 module Query_filter = struct
@@ -449,31 +476,107 @@ module Query_filter = struct
 
   let t = Query_filter.t
   let default = Functions.default_query_filter
+  let category_bits f = getf f Query_filter.category_bits
+  let mask_bits f = getf f Query_filter.mask_bits
+  let set_category_bits f c = setf f Query_filter.category_bits c
+  let set_mask_bits f m = setf f Query_filter.mask_bits m
 end
 
-module Surface_material = struct
-  type t' = Surface_material.t
-  type t = t' ctyp
+module Shape = struct
+  module Surface_material = struct
+    type t' = Surface_material.t
+    type t = t' ctyp
 
-  let t = Surface_material.t
-  let set_friction material friction = setf material Surface_material.friction friction
-end
+    let t = Surface_material.t
+    let friction s = getf s Surface_material.friction
+    let restitution s = getf s Surface_material.restitution
+    let rolling_resistance s = getf s Surface_material.rolling_resistance
+    let tangent_speed s = getf s Surface_material.tangent_speed
+    let user_material_id s = getf s Surface_material.user_material_id
+    let set_friction material friction = setf material Surface_material.friction friction
 
-module Shape_def = struct
-  type t' = Shape_def.t
-  type t = t' ctyp
+    let set_restitution material restitution =
+      setf material Surface_material.restitution restitution
 
-  let t = Shape_def.t
-  let default = Functions.default_shape_def
-  let material def = getf def Shape_def.material
-  let set_density def density = setf def Shape_def.density density
-end
+    let set_rolling_resistance material rolling_resistance =
+      setf material Surface_material.rolling_resistance rolling_resistance
 
-module Chain_def = struct
-  type t' = Chain_def.t
-  type t = t' ctyp
+    let set_tangent_speed material tangent_speed =
+      setf material Surface_material.tangent_speed tangent_speed
+  end
 
-  let t = Chain_def.t
+  module Shape_def = struct
+    type t' = Shape_def.t
+    type t = t' ctyp
+
+    let t = Shape_def.t
+    let default = Functions.default_shape_def
+
+    let create
+        ?(enable_contact_events = false)
+        ?(enable_hit_events = false)
+        ?(enable_pre_solve_events = false)
+        ?(enable_sensor_events = false)
+        ?(invoke_contact_creation = false)
+        ?(is_sensor = false)
+        ?(update_body_mass = true)
+        density
+        filter
+        material =
+      let d : t = Functions.default_shape_def () in
+      setf d Shape_def.enable_contact_events enable_contact_events;
+      setf d Shape_def.enable_hit_events enable_hit_events;
+      setf d Shape_def.enable_pre_solve_events enable_pre_solve_events;
+      setf d Shape_def.enable_sensor_events enable_sensor_events;
+      setf d Shape_def.invoke_contact_creation invoke_contact_creation;
+      setf d Shape_def.is_sensor is_sensor;
+      setf d Shape_def.update_body_mass update_body_mass;
+      setf d Shape_def.density density;
+      setf d Shape_def.filter filter;
+      setf d Shape_def.material material;
+      d
+
+    let density def = getf def Shape_def.density
+    let contact_events_enabled def = getf def Shape_def.enable_contact_events
+    let hit_events_enabled def = getf def Shape_def.enable_hit_events
+    let pre_solve_events_enabled def = getf def Shape_def.enable_pre_solve_events
+    let sensor_events_enabled def = getf def Shape_def.enable_sensor_events
+    let contact_creation_invoked def = getf def Shape_def.invoke_contact_creation
+    let is_sensor def = getf def Shape_def.is_sensor
+    let body_mass_should_update def = getf def Shape_def.update_body_mass
+    let filter def = getf def Shape_def.filter
+    let material def = getf def Shape_def.material
+    let set_density def density = setf def Shape_def.density density
+    let enable_contact_events def b = setf def Shape_def.enable_contact_events b
+    let enable_hit_events def b = setf def Shape_def.enable_hit_events b
+    let enable_pre_solve_events def b = setf def Shape_def.enable_pre_solve_events b
+    let enable_sensor_events def b = setf def Shape_def.enable_sensor_events b
+    let set_filter def f = setf def Shape_def.filter f
+    let invoke_contact_creation def i = setf def Shape_def.invoke_contact_creation i
+    let set_is_sensor def i = setf def Shape_def.is_sensor i
+    let set_material def m = setf def Shape_def.material m
+    let update_body_mass def u = setf def Shape_def.update_body_mass u
+  end
+
+  module Chain_def = struct
+    type t' = Chain_def.t
+    type t = t' ctyp
+
+    let t = Chain_def.t
+    let count c = getf c Chain_def.count
+    let sensor_events_enabled c = getf c Chain_def.enable_sensor_events
+    let filter c = getf c Chain_def.filter
+    let is_loop c = getf c Chain_def.is_loop
+    let material_count c = getf c Chain_def.material_count
+    let materials c = getf c Chain_def.materials
+    let points c = getf c Chain_def.points
+    let enable_sensor_events c e = setf c Chain_def.enable_sensor_events e
+    let set_filter c f = setf c Chain_def.filter f
+    let set_is_loop c i = setf c Chain_def.is_loop i
+    let set_material_count c m = setf c Chain_def.material_count m
+    let set_materials c m = setf c Chain_def.materials m
+    let set_points c p = setf c Chain_def.points p
+  end
 end
 
 module Body_events = struct
@@ -557,13 +660,6 @@ module Counters = struct
   type t = t' ctyp
 
   let t = Counters.t
-end
-
-module Mass_data = struct
-  type t' = Mass_data.t
-  type t = t' ctyp
-
-  let t = Mass_data.t
 end
 
 module Contact_data = struct

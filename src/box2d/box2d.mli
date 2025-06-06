@@ -62,6 +62,73 @@ module Transform : sig
 end
 
 module Geometry : sig
+  (** Low level ray cast input data. *)
+  module Ray_cast_input : sig
+    type t' = Box2d_c.Types.Ray_cast_input.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val max_fraction : t -> float
+    val origin : t -> Vec2.t
+    val translation : t -> Vec2.t
+  end
+
+  module Shape_proxy : sig
+    type t' = Box2d_c.Types.Shape_proxy.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val count : t -> int
+    (** The number of points. Must be greater than 0. *)
+
+    val points : t -> Vec2.t Ctypes_static.carray
+    (** The point cloud. *)
+
+    val radius : t -> float
+    (** The external radius of the point cloud. May be zero. *)
+  end
+
+  (** Low level ray cast or shape-cast output data *)
+  module Cast_output : sig
+    type t' = Box2d_c.Types.Cast_output.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val fraction : t -> float
+    (** The fraction of the input translation at collision. *)
+
+    val hit : t -> bool
+    (** Did the cast hit? *)
+
+    val iterations : t -> int
+    (** The number of iterations used. *)
+
+    val normal : t -> Vec2.t
+    (** The surface normal at the hit point. *)
+
+    val point : t -> Vec2.t
+    (** The surface hit point. *)
+  end
+
+  (** This holds the mass data computed for a shape. *)
+  module Mass_data : sig
+    type t' = Box2d_c.Types.Mass_data.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val center : t -> Vec2.t
+    (** The position of the shape's centroid relative to the shape's origin. *)
+
+    val mass : t -> float
+    (** The mass of the shape, usually in kilograms. *)
+
+    val rotational_inertia : t -> float
+    (** The rotational inertia of the shape about the local origin. *)
+  end
+
   (** A solid circle. *)
   module Circle : sig
     type t' = Box2d_c.Types.Circle.t
@@ -175,21 +242,6 @@ module Geometry : sig
       convex hull. *)
 end
 
-module Ray_cast_input : sig
-  type t' = Box2d_c.Types.Ray_cast_input.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
-(** Low level ray cast or shape-cast output data *)
-module Cast_output : sig
-  type t' = Box2d_c.Types.Cast_output.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
 module Joint_id : sig
   type t' = Box2d_c.Types.Joint_id.t
   type t = t' ctyp
@@ -209,13 +261,6 @@ end
 
 module Chain_id : sig
   type t' = Box2d_c.Types.Chain_id.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
-module Shape_proxy : sig
-  type t' = Box2d_c.Types.Shape_proxy.t
   type t = t' ctyp
 
   val t : t Ctypes.typ
@@ -266,51 +311,6 @@ end
 
 module Prismatic_join_def : sig
   type t' = Box2d_c.Types.Prismatic_join_def.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
-(** This is used to filter collision on shapes. It affects shape-vs-shape collision and
-    shape-versus-query collision (such as b2World_CastRay).*)
-module Filter : sig
-  type t' = Box2d_c.Types.Filter.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
-(** The query filter is used to filter collisions between queries and shapes. For example, you may
-    want a ray-cast representing a projectile to hit players and the static environment but not
-    debris. *)
-module Query_filter : sig
-  type t' = Box2d_c.Types.Query_filter.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val default : unit -> t
-end
-
-module Surface_material : sig
-  type t' = Box2d_c.Types.Surface_material.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val set_friction : t -> float -> unit
-end
-
-module Shape_def : sig
-  type t' = Box2d_c.Types.Shape_def.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val default : unit -> t
-  val material : t -> Surface_material.t
-  val set_density : t -> float -> unit
-end
-
-module Chain_def : sig
-  type t' = Box2d_c.Types.Chain_def.t
   type t = t' ctyp
 
   val t : t Ctypes.typ
@@ -422,13 +422,6 @@ module Counters : sig
   val t : t Ctypes.typ
 end
 
-module Mass_data : sig
-  type t' = Box2d_c.Types.Mass_data.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-end
-
 module Contact_data : sig
   type t' = Box2d_c.Types.Contact_data.t
   type t = t' ctyp
@@ -436,7 +429,61 @@ module Contact_data : sig
   val t : t Ctypes.typ
 end
 
-(* Functions *)
+(** This is used to filter collision on shapes. It affects shape-vs-shape collision and
+    shape-versus-query collision (such as b2World_CastRay).*)
+module Filter : sig
+  type t' = Box2d_c.Types.Filter.t
+  type t = t' ctyp
+
+  val t : t Ctypes.typ
+
+  val category_bits : t -> Unsigned.uint64
+  (** The collision category bits.
+
+      Normally you would just set one bit. The category bits should represent your application
+      object types. For example: *)
+
+  val group_index : t -> int
+  (** Collision groups allow a certain group of objects to never collide (negative) or always
+      collide (positive).
+
+      A group index of zero has no effect. Non-zero group filtering always wins against the mask
+      bits. For example, you may want ragdolls to collide with other ragdolls but you don't want
+      ragdoll self-collision. In this case you would give each ragdoll a unique negative group index
+      and apply that group index to all shapes on the ragdoll. *)
+
+  val mask_bits : t -> Unsigned.uint64
+  (** The collision mask bits.
+
+      This states the categories that this shape would accept for collision. For example, you may
+      want your player to only collide with static objects and other players. *)
+
+  val set_category_bits : t -> Unsigned.uint64 -> unit
+  val set_group_index : t -> int -> unit
+  val set_mask_bits : t -> Unsigned.uint64 -> unit
+end
+
+(** The query filter is used to filter collisions between queries and shapes. For example, you may
+    want a ray-cast representing a projectile to hit players and the static environment but not
+    debris. *)
+module Query_filter : sig
+  type t' = Box2d_c.Types.Query_filter.t
+  type t = t' ctyp
+
+  val t : t Ctypes.typ
+  val default : unit -> t
+
+  val category_bits : t -> Unsigned.uint64
+  (** The collision category bits of this query. Normally you would just set one bit. *)
+
+  val mask_bits : t -> Unsigned.uint64
+  (** The collision mask bits.
+
+      This states the shape categories that this query would accept for collision. *)
+
+  val set_category_bits : t -> Unsigned.uint64 -> unit
+  val set_mask_bits : t -> Unsigned.uint64 -> unit
+end
 
 (** These functions allow you to create a simulation world.
 
@@ -461,7 +508,7 @@ module World : sig
     val default : unit -> t
 
     val create :
-      ?gravity:Vec2.t' ctyp ->
+      ?gravity:Vec2.t ->
       ?restitution_threshold:float ->
       ?hit_event_threshold:float ->
       ?contact_hertz:float ->
@@ -545,7 +592,7 @@ module World : sig
 
   val overlap_shape :
     World_id.t ->
-    Shape_proxy.t Ctypes_static.ptr ->
+    Geometry.Shape_proxy.t Ctypes_static.ptr ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr -> unit Ctypes_static.ptr -> bool) ->
     unit Ctypes_static.ptr ->
@@ -581,7 +628,7 @@ module World : sig
 
   val cast_shape :
     World_id.t ->
-    Shape_proxy.t Ctypes_static.ptr ->
+    Geometry.Shape_proxy.t Ctypes_static.ptr ->
     Vec2.t ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr ->
@@ -974,12 +1021,12 @@ module Body : sig
   val get_world_center_of_mass : Body_id.t -> Vec2.t
   (** Get the center of mass position of the body in world space *)
 
-  val set_mass_data : Body_id.t -> Mass_data.t -> unit
+  val set_mass_data : Body_id.t -> Geometry.Mass_data.t -> unit
   (** Override the body's mass properties. Normally this is computed automatically using the shape
       geometry and density. This information is lost if a shape is added or removed or if the body
       type changes. *)
 
-  val get_mass_data : Body_id.t -> Mass_data.t
+  val get_mass_data : Body_id.t -> Geometry.Mass_data.t
   (** Get the mass data for a body *)
 
   val apply_mass_from_shapes : Body_id.t -> unit
@@ -1103,6 +1150,172 @@ end
     properties including friction and restitution. *)
 module Shape : sig
   open Body
+
+  (** Surface materials allow chain shapes to have per segment surface properties. *)
+  module Surface_material : sig
+    type t' = Box2d_c.Types.Surface_material.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val friction : t -> float
+    (** The Coulomb (dry) friction coefficient, usually in the range [0,1]. *)
+
+    val restitution : t -> float
+    (** The coefficient of restitution (bounce) usually in the range [0,1]. *)
+
+    val rolling_resistance : t -> float
+    (** The rolling resistance usually in the range [0,1]. *)
+
+    val tangent_speed : t -> float
+    (** The tangent speed for conveyor belts. *)
+
+    val user_material_id : t -> int
+    (** User material identifier.
+
+        This is passed with query results and to friction and restitution combining functions. It is
+        not used internally. *)
+
+    val set_friction : t -> float -> unit
+    val set_restitution : t -> float -> unit
+    val set_rolling_resistance : t -> float -> unit
+    val set_tangent_speed : t -> float -> unit
+  end
+
+  module Shape_def : sig
+    type t' = Box2d_c.Types.Shape_def.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val default : unit -> t
+
+    (* TODO: user_data *)
+    val create :
+      ?enable_contact_events:bool ->
+      ?enable_hit_events:bool ->
+      ?enable_pre_solve_events:bool ->
+      ?enable_sensor_events:bool ->
+      ?invoke_contact_creation:bool ->
+      ?is_sensor:bool ->
+      ?update_body_mass:bool ->
+      float ->
+      Filter.t ->
+      Surface_material.t ->
+      t
+    (** [create enable_contact_events enable_hit_events enable_sensor_events invoke_contact_creation
+         is_sensor update_body_mass density filter material]*)
+
+    val density : t -> float
+    (** The density, usually in kg/m^2.
+
+        This is not part of the surface material because this is for the interior, which may have
+        other considerations, such as being hollow. For example a wood barrel may be hollow or full
+        of water. *)
+
+    val contact_events_enabled : t -> bool
+    val hit_events_enabled : t -> bool
+    val pre_solve_events_enabled : t -> bool
+    val sensor_events_enabled : t -> bool
+    val filter : t -> Filter.t
+    val contact_creation_invoked : t -> bool
+    val is_sensor : t -> bool
+    val body_mass_should_update : t -> bool
+
+    val material : t -> Surface_material.t
+    (** The surface material for this shape. *)
+
+    val set_density : t -> float -> unit
+
+    val enable_contact_events : t -> bool -> unit
+    (** Enable contact events for this shape. Only applies to kinematic and dynamic bodies. Ignored
+        for sensors. False by default. *)
+
+    val enable_hit_events : t -> bool -> unit
+    (** Enable hit events for this shape. Only applies to kinematic and dynamic bodies. Ignored for
+        sensors. False by default. *)
+
+    val enable_pre_solve_events : t -> bool -> unit
+    (** Enable pre-solve contact events for this shape.
+
+        Only applies to dynamic bodies. These are expensive and must be carefully handled due to
+        threading. Ignored for sensors. *)
+
+    val enable_sensor_events : t -> bool -> unit
+    (** Enable sensor events for this shape. This applies to sensors and non-sensors. False by
+        default, even for sensors. *)
+
+    val set_filter : t -> Filter.t -> unit
+    (** Collision filtering data. *)
+
+    val invoke_contact_creation : t -> bool -> unit
+    (** When shapes are created they will scan the environment for collision the next time step. *)
+
+    val set_is_sensor : t -> bool -> unit
+    (** A sensor shape generates overlap events but never generates a collision response.
+
+        Sensors do not have continuous collision. Instead, use a ray or shape cast for those
+        scenarios. Sensors still contribute to the body mass if they have non-zero density.
+
+        Note: Sensor events are disabled by default. *)
+
+    val set_material : t -> Surface_material.t -> unit
+
+    val update_body_mass : t -> bool -> unit
+    (** Should the body update the mass properties when this shape is created. Default is true. *)
+
+    (* TODO: val user_data : *)
+  end
+
+  module Chain_def : sig
+    type t' = Box2d_c.Types.Chain_def.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+
+    val count : t -> int
+    (** The point count, must be 4 or more. *)
+
+    val sensor_events_enabled : t -> bool
+
+    val filter : t -> Filter.t
+    (** Contact filtering data. *)
+
+    val is_loop : t -> bool
+    (** Indicates a closed chain formed by connecting the first and last points. *)
+
+    val material_count : t -> int
+    (** The material count.
+
+        Must be 1 or count. This allows you to provide one material for all segments or a unique
+        material per segment. *)
+
+    val materials : t -> Surface_material.t Ctypes.ptr
+    (** Surface materials for each segment. These are cloned. *)
+
+    val points : t -> Vec2.t Ctypes.ptr
+    (** An array of at least 4 points. These are cloned and may be temporary. *)
+
+    val enable_sensor_events : t -> bool -> unit
+    (** Enable sensors to detect this chain. False by default. *)
+
+    val set_filter : t -> Filter.t -> unit
+    (** Contact filtering data. *)
+
+    val set_is_loop : t -> bool -> unit
+    (** Indicates a closed chain formed by connecting the first and last points. *)
+
+    val set_material_count : t -> int -> unit
+    (** The material count.
+
+        Must be 1 or count. This allows you to provide one material for all segments or a unique
+        material per segment. *)
+
+    val set_materials : t -> Surface_material.t Ctypes.ptr -> unit
+    (** Surface materials for each segment. These are cloned. *)
+
+    val set_points : t -> Vec2.t Ctypes.ptr -> unit
+    (** An array of at least 4 points. These are cloned and may be temporary. *)
+  end
 
   val create_circle :
     Body.Body_id.t ->
@@ -1248,7 +1461,7 @@ module Shape : sig
   val test_point : Shape_id.t -> Vec2.t -> bool
   (** Test a point for overlap with a shape *)
 
-  val ray_cast : Shape_id.t -> Ray_cast_input.t Ctypes_static.ptr -> Cast_output.t
+  val ray_cast : Shape_id.t -> Geometry.Ray_cast_input.t Ctypes_static.ptr -> Geometry.Cast_output.t
   (** Ray cast a shape directly *)
 
   val get_circle : Shape_id.t -> Geometry.Circle.t
@@ -1327,7 +1540,7 @@ module Shape : sig
   val get_aabb : Shape_id.t -> AABB.t
   (** Get the current world AABB *)
 
-  val get_mass_data : Shape_id.t -> Mass_data.t
+  val get_mass_data : Shape_id.t -> Geometry.Mass_data.t
   (** Get the mass data for a shape *)
 
   val get_closest_point : Shape_id.t -> Vec2.t -> Vec2.t

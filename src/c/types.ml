@@ -705,6 +705,7 @@ module Types (F : Ctypes.TYPE) = struct
     let t : t Ctypes.structure typ = structure "b2ShapeProxy"
     let count = field t "count" int
     let radius = field t "radius" float
+    let points = field t "points" @@ array 8 Vec2.t
     let () = seal t
   end
 
