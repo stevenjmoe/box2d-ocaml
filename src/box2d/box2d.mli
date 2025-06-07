@@ -1198,8 +1198,8 @@ module Shape : sig
       ?invoke_contact_creation:bool ->
       ?is_sensor:bool ->
       ?update_body_mass:bool ->
+      ?filter:Filter.t ->
       float ->
-      Filter.t ->
       Surface_material.t ->
       t
     (** [create enable_contact_events enable_hit_events enable_sensor_events invoke_contact_creation

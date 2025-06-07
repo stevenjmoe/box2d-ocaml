@@ -520,8 +520,8 @@ module Shape = struct
         ?(invoke_contact_creation = false)
         ?(is_sensor = false)
         ?(update_body_mass = true)
+        ?filter
         density
-        filter
         material =
       let d : t = Functions.default_shape_def () in
       setf d Shape_def.enable_contact_events enable_contact_events;
@@ -532,7 +532,7 @@ module Shape = struct
       setf d Shape_def.is_sensor is_sensor;
       setf d Shape_def.update_body_mass update_body_mass;
       setf d Shape_def.density density;
-      setf d Shape_def.filter filter;
+      Option.iter (fun x -> setf d Shape_def.filter x) filter;
       setf d Shape_def.material material;
       d
 
