@@ -9,6 +9,8 @@ module Shape_type = Shape_type
 module Joint_type = Joint_type
 
 module Vec2 = struct
+  include Functions.Math.Vec2
+
   type t' = Vec2.t
   type t = t' ctyp
 
@@ -34,6 +36,8 @@ module Vec2 = struct
 end
 
 module Rot = struct
+  include Functions.Math.Rot
+
   type t' = Rot.t
   type t = t' ctyp
 
@@ -55,6 +59,13 @@ module Rot = struct
   let s v = getf v Rot.s
   let set_c r c = setf r Rot.c c
   let set_s r s = setf r Rot.s s
+end
+
+module Cos_sin = struct
+  type t' = Cos_sin.t
+  type t = t' ctyp
+
+  let t = Cos_sin.t
 end
 
 module Transform = struct

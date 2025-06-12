@@ -20,6 +20,77 @@ module Vec2 : sig
 
   val set_y : t -> float -> unit
   (** [set_y t y] *)
+
+  val dot : t -> t -> float
+  (** Vector dot product *)
+
+  val cross : t -> t -> float
+  (** Vector cross product. In 2D this yields a scalar. *)
+
+  val cross_vs : t -> float -> t
+  (** Perform the cross product on a vector and a scalar. In 2D this produces a vector. *)
+
+  val cross_sv : float -> t -> t
+  (** Perform the cross product on a scalar and a vector. In 2D this produces a vector. *)
+
+  val left_perp : t -> t
+  (** Get a left pointing perpendicular vector. Equivalent to b2CrossSV(1.0f, v) *)
+
+  val right_perp : t -> t
+  (** Get a right pointing perpendicular vector. Equivalent to b2CrossVS(v, 1.0f) *)
+
+  val add : t -> t -> t
+  (** Vector addition *)
+
+  val sub : t -> t -> t
+  (** Vector subtraction *)
+
+  val neg : t -> t
+  (** Vector negation *)
+
+  val lerp : t -> t -> float -> t
+  (** Vector linear interpolation
+      https://fgiesen.wordpress.com/2012/08/15/linear-interpolation-past-present-and-future/ *)
+
+  val mul : t -> t -> t
+  (** Component-wise multiplication *)
+
+  val mul_sv : float -> t -> t
+  (** Multiply a scalar and vector *)
+
+  val mul_add : t -> float -> t -> t
+  (** a + s * b *)
+
+  val mul_sub : t -> float -> t -> t
+  (** a - s * b *)
+
+  val abs : t -> t
+  (** Component-wise absolute vector *)
+
+  val min : t -> t -> t
+  (** Component-wise minimum vector *)
+
+  val max : t -> t -> t
+  (** Component-wise maximum vector *)
+
+  val clamp : t -> t -> t -> t
+  (** Component-wise clamp vector v into the range [a, b] *)
+
+  val length : t -> float
+  (** Get the length of this vector (the norm) *)
+
+  val distance : t -> t -> float
+  (** Get the distance between two points *)
+
+  val normalize : t -> t
+  (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. *)
+
+  val is_normalized : t -> bool
+  (** Determines if the provided vector is normalized (norm(a) == 1). *)
+
+  val get_length_and_normalize : float Ctypes_static.ptr -> t -> t
+  (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. Also
+      outputs the length. *)
 end
 
 module Rot : sig
@@ -40,6 +111,17 @@ module Rot : sig
 
   val set_s : t -> float -> unit
   (** [set_s t sine] *)
+
+  val get_angle : t -> float
+end
+
+(** Cosine and sine pair This uses a custom implementation designed for cross-platform determinism
+*)
+module Cos_sin : sig
+  type t' = Box2d_c.Types.Cos_sin.t
+  type t = t' ctyp
+
+  val t : t Ctypes.typ
 end
 
 module Transform : sig

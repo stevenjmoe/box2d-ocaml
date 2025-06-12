@@ -126,6 +126,15 @@ module Types (F : Ctypes.TYPE) = struct
     let () = seal t
   end
 
+  module Cos_sin = struct
+    type t
+
+    let t : t Ctypes.structure typ = structure "b2CosSin"
+    let c = field t "cosine" float
+    let s = field t "sine" float
+    let () = seal t
+  end
+
   module Transform = struct
     type t
 

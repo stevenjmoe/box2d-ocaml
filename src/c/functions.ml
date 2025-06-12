@@ -833,4 +833,49 @@ module Functions (F : Ctypes.FOREIGN) = struct
       let get_motor_torque = foreign "b2WheelJoint_GetMotorTorque" (Joint_id.t @-> returning float)
     end
   end
+
+  module Math = struct
+    let min_int = foreign "b2MinInt" (int @-> int @-> returning int)
+    let max_int = foreign "b2MaxInt" (int @-> int @-> returning int)
+    let abs_int = foreign "b2AbsInt" (int @-> returning int)
+    let clamp_int = foreign "b2ClampInt" (int @-> int @-> int @-> returning int)
+    let min_float = foreign "b2MinFloat" (float @-> float @-> returning float)
+    let max_float = foreign "b2MaxFloat" (float @-> float @-> returning float)
+    let abs_float = foreign "b2AbsFloat" (float @-> returning float)
+    let clamp_float = foreign "b2ClampFloat" (float @-> float @-> float @-> returning float)
+    let atan2 = foreign "b2Atan2" (float @-> float @-> returning float)
+    let compute_cos_sine = foreign "b2ComputeCosSin" (float @-> returning Cos_sin.t)
+
+    module Vec2 = struct
+      let dot = foreign "b2Dot" (Vec2.t @-> Vec2.t @-> returning float)
+      let cross = foreign "b2Cross" (Vec2.t @-> Vec2.t @-> returning float)
+      let cross_vs = foreign "b2CrossVS" (Vec2.t @-> float @-> returning Vec2.t)
+      let cross_sv = foreign "b2CrossSV" (float @-> Vec2.t @-> returning Vec2.t)
+      let left_perp = foreign "b2LeftPerp" (Vec2.t @-> returning Vec2.t)
+      let right_perp = foreign "b2RightPerp" (Vec2.t @-> returning Vec2.t)
+      let add = foreign "b2Add" (Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let sub = foreign "b2Sub" (Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let neg = foreign "b2Neg" (Vec2.t @-> returning Vec2.t)
+      let lerp = foreign "b2Lerp" (Vec2.t @-> Vec2.t @-> float @-> returning Vec2.t)
+      let mul = foreign "b2Mul" (Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let mul_sv = foreign "b2MulSV" (float @-> Vec2.t @-> returning Vec2.t)
+      let mul_add = foreign "b2MulAdd" (Vec2.t @-> float @-> Vec2.t @-> returning Vec2.t)
+      let mul_sub = foreign "b2MulSub" (Vec2.t @-> float @-> Vec2.t @-> returning Vec2.t)
+      let abs = foreign "b2Abs" (Vec2.t @-> returning Vec2.t)
+      let min = foreign "b2Min" (Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let max = foreign "b2Max" (Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let clamp = foreign "b2Clamp" (Vec2.t @-> Vec2.t @-> Vec2.t @-> returning Vec2.t)
+      let length = foreign "b2Length" (Vec2.t @-> returning float)
+      let distance = foreign "b2Distance" (Vec2.t @-> Vec2.t @-> returning float)
+      let normalize = foreign "b2Normalize" (Vec2.t @-> returning Vec2.t)
+      let is_normalized = foreign "b2IsNormalized" (Vec2.t @-> returning bool)
+
+      let get_length_and_normalize =
+        foreign "b2GetLengthAndNormalize" (ptr float @-> Vec2.t @-> returning Vec2.t)
+    end
+
+    module Rot = struct
+      let get_angle = foreign "b2Rot_GetAngle" (Rot.t @-> returning float)
+    end
+  end
 end
