@@ -2,145 +2,240 @@ type 'a ctyp = 'a Ctypes.structure
 
 (* Types *)
 
-module Vec2 : sig
-  type t' = Box2d_c.Types.Vec2.t
-  type t = t' ctyp
+module Math : sig
+  module Vec2 : sig
+    type t' = Box2d_c.Types.Vec2.t
+    type t = t' ctyp
 
-  val t : t Ctypes.typ
+    val t : t Ctypes.typ
 
-  val create : float -> float -> t
-  (** [create x y] *)
+    val create : float -> float -> t
+    (** [create x y] *)
 
-  val zero : unit -> t
-  val x : t -> float
-  val y : t -> float
+    val zero : unit -> t
+    val x : t -> float
+    val y : t -> float
 
-  val set_x : t -> float -> unit
-  (** [set_x t x] *)
+    val set_x : t -> float -> unit
+    (** [set_x t x] *)
 
-  val set_y : t -> float -> unit
-  (** [set_y t y] *)
+    val set_y : t -> float -> unit
+    (** [set_y t y] *)
 
-  val dot : t -> t -> float
-  (** Vector dot product *)
+    val dot : t -> t -> float
+    (** Vector dot product *)
 
-  val cross : t -> t -> float
-  (** Vector cross product. In 2D this yields a scalar. *)
+    val cross : t -> t -> float
+    (** Vector cross product. In 2D this yields a scalar. *)
 
-  val cross_vs : t -> float -> t
-  (** Perform the cross product on a vector and a scalar. In 2D this produces a vector. *)
+    val cross_vs : t -> float -> t
+    (** Perform the cross product on a vector and a scalar. In 2D this produces a vector. *)
 
-  val cross_sv : float -> t -> t
-  (** Perform the cross product on a scalar and a vector. In 2D this produces a vector. *)
+    val cross_sv : float -> t -> t
+    (** Perform the cross product on a scalar and a vector. In 2D this produces a vector. *)
 
-  val left_perp : t -> t
-  (** Get a left pointing perpendicular vector. Equivalent to b2CrossSV(1.0f, v) *)
+    val left_perp : t -> t
+    (** Get a left pointing perpendicular vector. Equivalent to b2CrossSV(1.0f, v) *)
 
-  val right_perp : t -> t
-  (** Get a right pointing perpendicular vector. Equivalent to b2CrossVS(v, 1.0f) *)
+    val right_perp : t -> t
+    (** Get a right pointing perpendicular vector. Equivalent to b2CrossVS(v, 1.0f) *)
 
-  val add : t -> t -> t
-  (** Vector addition *)
+    val add : t -> t -> t
+    (** Vector addition *)
 
-  val sub : t -> t -> t
-  (** Vector subtraction *)
+    val sub : t -> t -> t
+    (** Vector subtraction *)
 
-  val neg : t -> t
-  (** Vector negation *)
+    val neg : t -> t
+    (** Vector negation *)
 
-  val lerp : t -> t -> float -> t
-  (** Vector linear interpolation
-      https://fgiesen.wordpress.com/2012/08/15/linear-interpolation-past-present-and-future/ *)
+    val lerp : t -> t -> float -> t
+    (** Vector linear interpolation
+        https://fgiesen.wordpress.com/2012/08/15/linear-interpolation-past-present-and-future/ *)
 
-  val mul : t -> t -> t
-  (** Component-wise multiplication *)
+    val mul : t -> t -> t
+    (** Component-wise multiplication *)
 
-  val mul_sv : float -> t -> t
-  (** Multiply a scalar and vector *)
+    val mul_sv : float -> t -> t
+    (** Multiply a scalar and vector *)
 
-  val mul_add : t -> float -> t -> t
-  (** a + s * b *)
+    val mul_add : t -> float -> t -> t
+    (** a + s * b *)
 
-  val mul_sub : t -> float -> t -> t
-  (** a - s * b *)
+    val mul_sub : t -> float -> t -> t
+    (** a - s * b *)
 
-  val abs : t -> t
-  (** Component-wise absolute vector *)
+    val abs : t -> t
+    (** Component-wise absolute vector *)
 
-  val min : t -> t -> t
-  (** Component-wise minimum vector *)
+    val min : t -> t -> t
+    (** Component-wise minimum vector *)
 
-  val max : t -> t -> t
-  (** Component-wise maximum vector *)
+    val max : t -> t -> t
+    (** Component-wise maximum vector *)
 
-  val clamp : t -> t -> t -> t
-  (** Component-wise clamp vector v into the range [a, b] *)
+    val clamp : t -> t -> t -> t
+    (** Component-wise clamp vector v into the range [a, b] *)
 
-  val length : t -> float
-  (** Get the length of this vector (the norm) *)
+    val length : t -> float
+    (** Get the length of this vector (the norm) *)
 
-  val distance : t -> t -> float
-  (** Get the distance between two points *)
+    val distance : t -> t -> float
+    (** Get the distance between two points *)
 
-  val normalize : t -> t
-  (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. *)
+    val normalize : t -> t
+    (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. *)
 
-  val is_normalized : t -> bool
-  (** Determines if the provided vector is normalized (norm(a) == 1). *)
+    val is_normalized : t -> bool
+    (** Determines if the provided vector is normalized (norm(a) == 1). *)
 
-  val get_length_and_normalize : float Ctypes_static.ptr -> t -> t
-  (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. Also
-      outputs the length. *)
-end
+    val get_length_and_normalize : float Ctypes_static.ptr -> t -> t
+    (** Convert a vector into a unit vector if possible, otherwise returns the zero vector. Also
+        outputs the length. *)
 
-module Rot : sig
-  type t' = Box2d_c.Types.Rot.t
-  type t = t' ctyp
+    val length_squared : t -> float
+    (** Get the length squared of this vector *)
 
-  val t : t Ctypes.typ
+    val distance_squared : t -> t -> float
+    (** Get the distance squared between points *)
+  end
 
-  val create : float -> float -> t
-  (** [create cosine sine] *)
+  module Rot : sig
+    type t' = Box2d_c.Types.Rot.t
+    type t = t' ctyp
 
-  val zero : unit -> t
-  val c : t -> float
-  val s : t -> float
+    val t : t Ctypes.typ
 
-  val set_c : t -> float -> unit
-  (** [set_c t cosine] *)
+    val create : float -> float -> t
+    (** [create cosine sine] *)
 
-  val set_s : t -> float -> unit
-  (** [set_s t sine] *)
+    val zero : unit -> t
+    val c : t -> float
+    val s : t -> float
 
-  val get_angle : t -> float
-end
+    val set_c : t -> float -> unit
+    (** [set_c t cosine] *)
 
-(** Cosine and sine pair This uses a custom implementation designed for cross-platform determinism
-*)
-module Cos_sin : sig
-  type t' = Box2d_c.Types.Cos_sin.t
-  type t = t' ctyp
+    val set_s : t -> float -> unit
+    (** [set_s t sine] *)
 
-  val t : t Ctypes.typ
-end
+    val normalize : t -> t
+    (** Normalize rotation *)
 
-module Transform : sig
-  type t' = Box2d_c.Types.Transform.t
-  type t = t' ctyp
+    val integrate_rotation : t -> float -> t
+    (** Integrate rotation from angular velocity
+        @param q1 initial rotation
+        @param deltaAngle the angular displacement in radians *)
 
-  val create : Vec2.t -> Rot.t -> t
-  (** [create p q]*)
+    val make_rot : float -> t
+    (** Make a rotation using an angle in radians *)
 
-  val zero : unit -> t
-  val t : t Ctypes.typ
-  val p : t -> Vec2.t
-  val q : t -> Rot.t
+    val is_normalized : t -> bool
+    (** Is this rotation normalized? *)
 
-  val set_p : t -> Vec2.t -> unit
-  (** [set_p t p] *)
+    val n_lerp : t -> t -> float -> t
+    (** Normalized linear interpolation
+        https://fgiesen.wordpress.com/2012/08/15/linear-interpolation-past-present-and-future/
+        https://web.archive.org/web/20170825184056/http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+    *)
 
-  val set_q : t -> Rot.t -> unit
-  (** [set_q t q] *)
+    val compute_angular_velocity : t -> t -> float -> float
+    (** Compute the angular velocity necessary to rotate between two rotations over a give time
+        @param q1 initial rotation
+        @param q2 final rotation
+        @param inv_h inverse time step *)
+
+    val get_angle : t -> float
+    (** Get the angle in radians in the range [-pi, pi] *)
+
+    val get_x_axis : t -> Vec2.t
+    (** Get the x-axis*)
+
+    val get_y_axis : t -> Vec2.t
+    (** Get the y-axis *)
+
+    val mul : t -> t -> t
+    (** Multiply two rotations: q * r *)
+
+    val inv_mul : t -> t -> t
+    (** Transpose multiply two rotations: qT * r *)
+
+    val relative_angle : t -> t -> float
+    (** relative angle between b and a (rot_b * inv(rot_a)) *)
+  end
+
+  (** Cosine and sine pair This uses a custom implementation designed for cross-platform determinism
+  *)
+  module Cos_sin : sig
+    type t' = Box2d_c.Types.Cos_sin.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+  end
+
+  module Transform : sig
+    type t' = Box2d_c.Types.Transform.t
+    type t = t' ctyp
+
+    val create : Vec2.t -> Rot.t -> t
+    (** [create p q]*)
+
+    val zero : unit -> t
+    val t : t Ctypes.typ
+    val p : t -> Vec2.t
+    val q : t -> Rot.t
+
+    val set_p : t -> Vec2.t -> unit
+    (** [set_p t p] *)
+
+    val set_q : t -> Rot.t -> unit
+    (** [set_q t q] *)
+  end
+
+  val rotate_vector : Rot.t -> Vec2.t -> Vec2.t
+  (** Rotate a vector *)
+
+  val inv_rotate_vector : Rot.t -> Vec2.t -> Vec2.t
+  (** Inverse rotate a vector *)
+
+  val min_int : int -> int -> int
+  (** @return the minimum of two integers *)
+
+  val max_int : int -> int -> int
+  (** @return the maximum of two integers *)
+
+  val abs_int : int -> int
+  (** @return the absolute value of an integer *)
+
+  val clamp_int : int -> int -> int -> int
+  (** @return an integer clamped between a lower and upper bound *)
+
+  val min_float : float -> float -> float
+  (** @return the minimum of two floats *)
+
+  val max_float : float -> float -> float
+  (** @return the maximum of two floats *)
+
+  val abs_float : float -> float
+  (** @return the absolute value of a float *)
+
+  val clamp_float : float -> float -> float -> float
+  (** @return a float clamped between a lower and upper bound *)
+
+  val atan2 : float -> float -> float
+  (** Compute an approximate arctangent in the range [-pi, pi] This is hand coded for cross-platform
+      determinism. The atan2f function in the standard library is not cross-platform deterministic.
+      Accurate to around 0.0023 degrees *)
+
+  val compute_cos_sine : float -> Cos_sin.t
+  (** Compute the cosine and sine of an angle in radians. Implemented for cross-platform
+      determinism. *)
+
+  val unwind_angle : float -> float
+  (** Convert an angle in the range [-2*pi, 2*pi] into the range [-pi, pi] *)
+
+  val unwind_large_angle : float -> float
+  (** Convert any into the range [-pi, pi] (slow) *)
 end
 
 module Geometry : sig
@@ -151,8 +246,8 @@ module Geometry : sig
 
     val t : t Ctypes.typ
     val max_fraction : t -> float
-    val origin : t -> Vec2.t
-    val translation : t -> Vec2.t
+    val origin : t -> Math.Vec2.t
+    val translation : t -> Math.Vec2.t
   end
 
   module Shape_proxy : sig
@@ -164,7 +259,7 @@ module Geometry : sig
     val count : t -> int
     (** The number of points. Must be greater than 0. *)
 
-    val points : t -> Vec2.t Ctypes_static.carray
+    val points : t -> Math.Vec2.t Ctypes_static.carray
     (** The point cloud. *)
 
     val radius : t -> float
@@ -187,10 +282,10 @@ module Geometry : sig
     val iterations : t -> int
     (** The number of iterations used. *)
 
-    val normal : t -> Vec2.t
+    val normal : t -> Math.Vec2.t
     (** The surface normal at the hit point. *)
 
-    val point : t -> Vec2.t
+    val point : t -> Math.Vec2.t
     (** The surface hit point. *)
   end
 
@@ -201,7 +296,7 @@ module Geometry : sig
 
     val t : t Ctypes.typ
 
-    val center : t -> Vec2.t
+    val center : t -> Math.Vec2.t
     (** The position of the shape's centroid relative to the shape's origin. *)
 
     val mass : t -> float
@@ -218,10 +313,10 @@ module Geometry : sig
 
     val t : t Ctypes.typ
 
-    val create : ?center:Vec2.t -> float -> t
+    val create : ?center:Math.Vec2.t -> float -> t
     (** [create center radius]*)
 
-    val center : t -> Vec2.t
+    val center : t -> Math.Vec2.t
     (** The local center. *)
 
     val radius : t -> float
@@ -235,13 +330,13 @@ module Geometry : sig
 
     val t : t Ctypes.typ
 
-    val create : Vec2.t -> Vec2.t -> float -> t
+    val create : Math.Vec2.t -> Math.Vec2.t -> float -> t
     (** [create center1 center2 radius] *)
 
-    val center1 : t -> Vec2.t
+    val center1 : t -> Math.Vec2.t
     (** Local center of the first semicircle. *)
 
-    val center2 : t -> Vec2.t
+    val center2 : t -> Math.Vec2.t
     (** Local center of the second semicircle. *)
 
     val radius : t -> float
@@ -263,19 +358,19 @@ module Geometry : sig
     val t : t Ctypes.typ
     val create : float -> float -> t
 
-    val centroid : t -> Vec2.t
+    val centroid : t -> Math.Vec2.t
     (** The centroid of the polygon. *)
 
     val count : t -> int
     (** The number of polygon vertices. *)
 
-    val normals : t -> Vec2.t Ctypes_static.carray
+    val normals : t -> Math.Vec2.t Ctypes_static.carray
     (** The outward normal vectors of the polygon sides. *)
 
     val radius : t -> float
     (** The external radius for rounded polygons. *)
 
-    val vertices : t -> Vec2.t Ctypes_static.carray
+    val vertices : t -> Math.Vec2.t Ctypes_static.carray
     (** The polygon vertices. *)
   end
 
@@ -286,11 +381,11 @@ module Geometry : sig
 
     val t : t Ctypes.typ
 
-    val create : Vec2.t -> Vec2.t -> t
+    val create : Math.Vec2.t -> Math.Vec2.t -> t
     (** [create point1 point2] *)
 
-    val point1 : t -> Vec2.t
-    val point2 : t -> Vec2.t
+    val point1 : t -> Math.Vec2.t
+    val point2 : t -> Math.Vec2.t
   end
 
   (** A line segment with one-sided collision.
@@ -303,16 +398,16 @@ module Geometry : sig
 
     val t : t Ctypes.typ
 
-    val create : Vec2.t -> Vec2.t -> Segment.t -> t
+    val create : Math.Vec2.t -> Math.Vec2.t -> Segment.t -> t
     (** [create ghost1 ghost2 segment] *)
 
     val chain_id : t -> int
     (** The owning chain shape index (internal usage only). *)
 
-    val ghost1 : t -> Vec2.t
+    val ghost1 : t -> Math.Vec2.t
     (** The tail ghost vertex. *)
 
-    val ghost2 : t -> Vec2.t
+    val ghost2 : t -> Math.Vec2.t
     (** The head ghost vertex. *)
 
     val segment : t -> Segment.t
@@ -452,7 +547,7 @@ module AABB : sig
   type t = t' ctyp
 
   val t : t Ctypes.typ
-  val create : Vec2.t -> Vec2.t -> t
+  val create : Math.Vec2.t -> Math.Vec2.t -> t
 end
 
 module Tree_stats : sig
@@ -590,7 +685,7 @@ module World : sig
     val default : unit -> t
 
     val create :
-      ?gravity:Vec2.t ->
+      ?gravity:Math.Vec2.t ->
       ?restitution_threshold:float ->
       ?hit_event_threshold:float ->
       ?contact_hertz:float ->
@@ -605,7 +700,7 @@ module World : sig
       unit ->
       t
 
-    val set_gravity : t -> Vec2.t -> unit
+    val set_gravity : t -> Math.Vec2.t -> unit
     val set_restitution_threshold : t -> float -> unit
     val set_hit_event_threshold : t -> float -> unit
     val set_contact_hertz : t -> float -> unit
@@ -616,7 +711,7 @@ module World : sig
     val set_maximum_linear_speed : t -> float -> unit
     val set_enable_sleep : t -> bool -> unit
     val set_enable_continuous : t -> bool -> unit
-    val gravity : t -> Vec2.t
+    val gravity : t -> Math.Vec2.t
     val restitution_threshold : t -> float
     val hit_event_threshold : t -> float
     val contact_hertz : t -> float
@@ -683,12 +778,12 @@ module World : sig
 
   val cast_ray :
     World_id.t ->
-    Vec2.t ->
-    Vec2.t ->
+    Math.Vec2.t ->
+    Math.Vec2.t ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr ->
-    Vec2.t Ctypes_static.ptr ->
-    Vec2.t Ctypes_static.ptr ->
+    Math.Vec2.t Ctypes_static.ptr ->
+    Math.Vec2.t Ctypes_static.ptr ->
     float ->
     unit Ctypes_static.ptr ->
     float) ->
@@ -706,16 +801,16 @@ module World : sig
       @param context A user context that is passed along to the callback function
       @return traversal performance counters *)
 
-  val cast_ray_closest : World_id.t -> Vec2.t -> Vec2.t -> Query_filter.t -> Ray_result.t
+  val cast_ray_closest : World_id.t -> Math.Vec2.t -> Math.Vec2.t -> Query_filter.t -> Ray_result.t
 
   val cast_shape :
     World_id.t ->
     Geometry.Shape_proxy.t Ctypes_static.ptr ->
-    Vec2.t ->
+    Math.Vec2.t ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr ->
-    Vec2.t Ctypes_static.ptr ->
-    Vec2.t Ctypes_static.ptr ->
+    Math.Vec2.t Ctypes_static.ptr ->
+    Math.Vec2.t Ctypes_static.ptr ->
     float ->
     unit Ctypes_static.ptr ->
     float) ->
@@ -725,7 +820,7 @@ module World : sig
       point. see b2World_CastRay *)
 
   val cast_mover :
-    World_id.t -> Geometry.Capsule.t Ctypes_static.ptr -> Vec2.t -> Query_filter.t -> float
+    World_id.t -> Geometry.Capsule.t Ctypes_static.ptr -> Math.Vec2.t -> Query_filter.t -> float
   (** Cast a capsule mover through the world. This is a special shape cast that handles sliding
       along other shapes while reducing clipping. *)
 
@@ -797,13 +892,13 @@ module World : sig
     unit
   (** Register the pre-solve callback. This is optional. *)
 
-  val set_gravity : World_id.t -> Vec2.t -> unit
+  val set_gravity : World_id.t -> Math.Vec2.t -> unit
   (** Set the gravity vector for the entire world. Box2D has no concept of an up direction and this
       is left as a decision for the application. Usually in m/s^2.
 
       see b2WorldDef *)
 
-  val get_graviy : World_id.t -> Vec2.t
+  val get_graviy : World_id.t -> Math.Vec2.t
   (** Get the gravity vector *)
 
   val world_explode : World_id.t -> Explosion_def.t Ctypes_static.ptr -> unit
@@ -891,9 +986,9 @@ module Body : sig
 
     val create :
       ?type_:Body_type.t ->
-      ?position:Vec2.t ->
-      ?rotation:Rot.t ->
-      ?linear_velocity:Vec2.t ->
+      ?position:Math.Vec2.t ->
+      ?rotation:Math.Rot.t ->
+      ?linear_velocity:Math.Vec2.t ->
       ?angular_velocity:float ->
       ?linear_damping:float ->
       ?angular_damping:float ->
@@ -912,9 +1007,9 @@ module Body : sig
       t
 
     val set_type : t -> Body_type.t -> unit
-    val set_position : t -> Vec2.t -> unit
-    val set_rotation : t -> Rot.t -> unit
-    val set_linear_velocity : t -> Vec2.t -> unit
+    val set_position : t -> Math.Vec2.t -> unit
+    val set_rotation : t -> Math.Rot.t -> unit
+    val set_linear_velocity : t -> Math.Vec2.t -> unit
     val set_angular_velocity : t -> float -> unit
     val set_linear_damping : t -> float -> unit
     val set_angular_damping : t -> float -> unit
@@ -930,9 +1025,9 @@ module Body : sig
     val set_allow_fast_rotation : t -> bool -> unit
     val set_internal_value : t -> int -> unit
     val type_ : t -> Body_type.t
-    val position : t -> Vec2.t
-    val rotation : t -> Rot.t
-    val linear_velocity : t -> Vec2.t
+    val position : t -> Math.Vec2.t
+    val rotation : t -> Math.Rot.t
+    val linear_velocity : t -> Math.Vec2.t
     val angular_velocity : t -> float
     val linear_damping : t -> float
     val angular_damping : t -> float
@@ -984,59 +1079,59 @@ module Body : sig
   val get_user_data : Body_id.t -> unit Ctypes_static.ptr
   (** Get the user data stored in a body *)
 
-  val get_position : Body_id.t -> Vec2.t
+  val get_position : Body_id.t -> Math.Vec2.t
   (** Get the world position of a body. This is the location of the body origin. *)
 
-  val get_rotation : Body_id.t -> Rot.t
+  val get_rotation : Body_id.t -> Math.Rot.t
   (** Get the world rotation of a body as a cosine/sine pair (complex number) *)
 
-  val get_transform : Body_id.t -> Transform.t
+  val get_transform : Body_id.t -> Math.Transform.t
   (** Get the world transform of a body. *)
 
-  val set_transform : Body_id.t -> Vec2.t -> Rot.t -> unit
+  val set_transform : Body_id.t -> Math.Vec2.t -> Math.Rot.t -> unit
   (** Set the world transform of a body. This acts as a teleport and is fairly expensive.
 
       note: Generally you should create a body with then intended transform.
 
       see: [b2BodyDef::position] and [b2BodyDef::angle] *)
 
-  val get_local_point : Body_id.t -> Vec2.t -> Vec2.t
+  val get_local_point : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get a local point on a body given a world point *)
 
-  val get_world_point : Body_id.t -> Vec2.t -> Vec2.t
+  val get_world_point : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get a world point on a body given a local point *)
 
-  val get_local_vector : Body_id.t -> Vec2.t -> Vec2.t
+  val get_local_vector : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get a local vector on a body given a world vector *)
 
-  val get_world_vector : Body_id.t -> Vec2.t -> Vec2.t
+  val get_world_vector : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get a world vector on a body given a local vector *)
 
-  val get_linear_velocity : Body_id.t -> Vec2.t
+  val get_linear_velocity : Body_id.t -> Math.Vec2.t
   (** Get the linear velocity of a body's center of mass. Usually in meters per second. *)
 
   val get_angular_velocity : Body_id.t -> float
   (** Get the angular velocity of a body in radians per second *)
 
-  val set_linear_velocity : Body_id.t -> Vec2.t -> unit
+  val set_linear_velocity : Body_id.t -> Math.Vec2.t -> unit
   (** Set the linear velocity of a body. Usually in meters per second. *)
 
   val set_angular_velocity : Body_id.t -> float -> unit
   (** Set the angular velocity of a body in radians per second *)
 
-  val set_target_transform : Body_id.t -> Transform.t -> float -> unit
+  val set_target_transform : Body_id.t -> Math.Transform.t -> float -> unit
   (** Set the velocity to reach the given transform after a given time step. The result will be
       close but maybe not exact. This is meant for kinematic bodies. The target is not applied if
       the velocity would be below the sleep threshold. This will automatically wake the body if
       asleep. *)
 
-  val get_local_point_velocity : Body_id.t -> Vec2.t -> Vec2.t
+  val get_local_point_velocity : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get the linear velocity of a local point attached to a body. Usually in meters per second. *)
 
-  val get_world_point_velocity : Body_id.t -> Vec2.t -> Vec2.t
+  val get_world_point_velocity : Body_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get the linear velocity of a world point attached to a body. Usually in meters per second. *)
 
-  val apply_force : Body_id.t -> Vec2.t -> Vec2.t -> bool -> unit
+  val apply_force : Body_id.t -> Math.Vec2.t -> Math.Vec2.t -> bool -> unit
   (** Apply a force at a world point. If the force is not applied at the center of mass, it will
       generate a torque and affect the angular velocity. This optionally wakes up the body. The
       force is ignored if the body is not awake.
@@ -1045,7 +1140,7 @@ module Body : sig
       @param point The world position of the point of application
       @param wake Option to wake up the body *)
 
-  val apply_force_to_center : Body_id.t -> Vec2.t -> bool -> unit
+  val apply_force_to_center : Body_id.t -> Math.Vec2.t -> bool -> unit
   (** Apply a force to the center of mass. This optionally wakes up the body. The force is ignored
       if the body is not awake.
       @param body_id The body id
@@ -1059,7 +1154,7 @@ module Body : sig
       @param torque about the z-axis (out of the screen), usually in N*m.
       @param wake also wake up the body *)
 
-  val apply_linear_impulse : Body_id.t -> Vec2.t -> Vec2.t -> bool -> unit
+  val apply_linear_impulse : Body_id.t -> Math.Vec2.t -> Math.Vec2.t -> bool -> unit
   (** Apply an impulse at a point. This immediately modifies the velocity. It also modifies the
       angular velocity if the point of application is not at the center of mass. This optionally
       wakes the body. The impulse is ignored if the body is not awake.
@@ -1071,7 +1166,7 @@ module Body : sig
       warning: This should be used for one-shot impulses. If you need a steady force, use a force
       instead, which will work better with the sub-stepping solver. *)
 
-  val apply_linear_impulse_to_center : Body_id.t -> Vec2.t -> bool -> unit
+  val apply_linear_impulse_to_center : Body_id.t -> Math.Vec2.t -> bool -> unit
   (** Apply an impulse to the center of mass. This immediately modifies the velocity. The impulse is
       ignored if the body is not awake. This optionally wakes the body.
       @param bodyId The body id
@@ -1097,10 +1192,10 @@ module Body : sig
   val get_rotational_inertia : Body_id.t -> float
   (** Get the rotational inertia of the body, usually in kg*m^2 *)
 
-  val get_local_center_of_mass : Body_id.t -> Vec2.t
+  val get_local_center_of_mass : Body_id.t -> Math.Vec2.t
   (** Get the center of mass position of the body in local space *)
 
-  val get_world_center_of_mass : Body_id.t -> Vec2.t
+  val get_world_center_of_mass : Body_id.t -> Math.Vec2.t
   (** Get the center of mass position of the body in world space *)
 
   val set_mass_data : Body_id.t -> Geometry.Mass_data.t -> unit
@@ -1374,7 +1469,7 @@ module Shape : sig
     val materials : t -> Surface_material.t Ctypes.ptr
     (** Surface materials for each segment. These are cloned. *)
 
-    val points : t -> Vec2.t Ctypes.ptr
+    val points : t -> Math.Vec2.t Ctypes.ptr
     (** An array of at least 4 points. These are cloned and may be temporary. *)
 
     val enable_sensor_events : t -> bool -> unit
@@ -1395,7 +1490,7 @@ module Shape : sig
     val set_materials : t -> Surface_material.t Ctypes.ptr -> unit
     (** Surface materials for each segment. These are cloned. *)
 
-    val set_points : t -> Vec2.t Ctypes.ptr -> unit
+    val set_points : t -> Math.Vec2.t Ctypes.ptr -> unit
     (** An array of at least 4 points. These are cloned and may be temporary. *)
   end
 
@@ -1540,7 +1635,7 @@ module Shape : sig
   val are_hit_events_enabled : Shape_id.t -> bool
   (** Returns true if hit events are enabled *)
 
-  val test_point : Shape_id.t -> Vec2.t -> bool
+  val test_point : Shape_id.t -> Math.Vec2.t -> bool
   (** Test a point for overlap with a shape *)
 
   val ray_cast : Shape_id.t -> Geometry.Ray_cast_input.t Ctypes_static.ptr -> Geometry.Cast_output.t
@@ -1625,7 +1720,7 @@ module Shape : sig
   val get_mass_data : Shape_id.t -> Geometry.Mass_data.t
   (** Get the mass data for a shape *)
 
-  val get_closest_point : Shape_id.t -> Vec2.t -> Vec2.t
+  val get_closest_point : Shape_id.t -> Math.Vec2.t -> Math.Vec2.t
   (** Get the closest point on a shape to a target point. Target and result are in world space. todo
       need sample *)
 
@@ -1697,10 +1792,10 @@ module Shape : sig
     val get_world : Joint_id.t -> World.World_id.t
     (** Get the world that owns this joint *)
 
-    val get_local_anchor_a : Joint_id.t -> Vec2.t
+    val get_local_anchor_a : Joint_id.t -> Math.Vec2.t
     (** Get the local anchor on bodyA *)
 
-    val get_local_anchor_b : Joint_id.t -> Vec2.t
+    val get_local_anchor_b : Joint_id.t -> Math.Vec2.t
     (** Get the local anchor on bodyB *)
 
     val set_collide_connected : Joint_id.t -> bool -> unit
@@ -1718,7 +1813,7 @@ module Shape : sig
     val wake_bodies : Joint_id.t -> unit
     (** Wake the bodies connect to this joint *)
 
-    val get_constraint_force : Joint_id.t -> Vec2.t
+    val get_constraint_force : Joint_id.t -> Math.Vec2.t
     (** Get the current constraint force for this joint. Usually in Newtons. *)
 
     val get_constraint_torque : Joint_id.t -> float
@@ -1808,10 +1903,10 @@ module Shape : sig
 
        see b2MotorJointDef for details*)
 
-    val set_linear_offset : Joint_id.t -> Vec2.t -> unit
+    val set_linear_offset : Joint_id.t -> Math.Vec2.t -> unit
     (** Set the motor joint linear offset target *)
 
-    val get_linear_offset : Joint_id.t -> Vec2.t
+    val get_linear_offset : Joint_id.t -> Math.Vec2.t
     (** Get the motor joint linear offset target *)
 
     val set_angular_offset : Joint_id.t -> float -> unit
@@ -1847,10 +1942,10 @@ module Shape : sig
 
         see b2MouseJointDef for details *)
 
-    val set_target : Joint_id.t -> Vec2.t -> unit
+    val set_target : Joint_id.t -> Math.Vec2.t -> unit
     (** Set the mouse joint target *)
 
-    val get_target : Joint_id.t -> Vec2.t
+    val get_target : Joint_id.t -> Math.Vec2.t
     (** Get the mouse joint target *)
 
     val set_spring_hertz : Joint_id.t -> float -> unit

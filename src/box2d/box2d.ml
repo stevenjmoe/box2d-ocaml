@@ -1,6 +1,11 @@
 include Types
 include Functions
 
+module Math = struct
+  include Functions.Math
+  include Types.Math
+end
+
 module World = struct
   include Types.World
   include Functions.World

@@ -845,6 +845,10 @@ module Functions (F : Ctypes.FOREIGN) = struct
     let clamp_float = foreign "b2ClampFloat" (float @-> float @-> float @-> returning float)
     let atan2 = foreign "b2Atan2" (float @-> float @-> returning float)
     let compute_cos_sine = foreign "b2ComputeCosSin" (float @-> returning Cos_sin.t)
+    let unwind_angle = foreign "b2UnwindAngle" (float @-> returning float)
+    let unwind_large_angle = foreign "b2UnwindLargeAngle" (float @-> returning float)
+    let rotate_vector = foreign "b2RotateVector" (Rot.t @-> Vec2.t @-> returning Vec2.t)
+    let inv_rotate_vector = foreign "b2InvRotateVector" (Rot.t @-> Vec2.t @-> returning Vec2.t)
 
     module Vec2 = struct
       let dot = foreign "b2Dot" (Vec2.t @-> Vec2.t @-> returning float)
@@ -869,13 +873,31 @@ module Functions (F : Ctypes.FOREIGN) = struct
       let distance = foreign "b2Distance" (Vec2.t @-> Vec2.t @-> returning float)
       let normalize = foreign "b2Normalize" (Vec2.t @-> returning Vec2.t)
       let is_normalized = foreign "b2IsNormalized" (Vec2.t @-> returning bool)
+      let length_squared = foreign "b2LengthSquared" (Vec2.t @-> returning float)
+      let distance_squared = foreign "b2DistanceSquared" (Vec2.t @-> Vec2.t @-> returning float)
 
       let get_length_and_normalize =
         foreign "b2GetLengthAndNormalize" (ptr float @-> Vec2.t @-> returning Vec2.t)
     end
 
     module Rot = struct
+      open Box2d_types_generated
+
+      let normalize = foreign "b2NormalizeRot" (Rot.t @-> returning Rot.t)
+      let integrate_rotation = foreign "b2IntegrateRotation" (Rot.t @-> float @-> returning Rot.t)
+      let make_rot = foreign "b2MakeRot" (float @-> returning Rot.t)
+      let is_normalized = foreign "b2IsNormalizedRot" (Rot.t @-> returning bool)
+      let n_lerp = foreign "b2NLerp" (Rot.t @-> Rot.t @-> float @-> returning Rot.t)
+
+      let compute_angular_velocity =
+        foreign "b2ComputeAngularVelocity" (Rot.t @-> Rot.t @-> float @-> returning float)
+
       let get_angle = foreign "b2Rot_GetAngle" (Rot.t @-> returning float)
+      let get_x_axis = foreign "b2Rot_GetXAxis" (Rot.t @-> returning Vec2.t)
+      let get_y_axis = foreign "b2Rot_GetYAxis" (Rot.t @-> returning Vec2.t)
+      let mul = foreign "b2MulRot" (Rot.t @-> Rot.t @-> returning Rot.t)
+      let inv_mul = foreign "b2InvMulRot" (Rot.t @-> Rot.t @-> returning Rot.t)
+      let relative_angle = foreign "b2RelativeAngle" (Rot.t @-> Rot.t @-> returning float)
     end
   end
 end

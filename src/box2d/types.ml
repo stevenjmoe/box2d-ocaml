@@ -8,88 +8,90 @@ type 'a ctyp = 'a Ctypes.structure
 module Shape_type = Shape_type
 module Joint_type = Joint_type
 
-module Vec2 = struct
-  include Functions.Math.Vec2
+module Math = struct
+  module Vec2 = struct
+    include Functions.Math.Vec2
 
-  type t' = Vec2.t
-  type t = t' ctyp
+    type t' = Vec2.t
+    type t = t' ctyp
 
-  let t = Vec2.t
+    let t = Vec2.t
 
-  let create x y =
-    let v2 = make t in
-    setf v2 Vec2.x x;
-    setf v2 Vec2.y y;
-    v2
+    let create x y =
+      let v2 = make t in
+      setf v2 Vec2.x x;
+      setf v2 Vec2.y y;
+      v2
 
-  let x v = getf v Vec2.x
-  let y v = getf v Vec2.y
+    let x v = getf v Vec2.x
+    let y v = getf v Vec2.y
 
-  let zero () =
-    let v2 = make t in
-    setf v2 Vec2.x 0.;
-    setf v2 Vec2.y 0.;
-    v2
+    let zero () =
+      let v2 = make t in
+      setf v2 Vec2.x 0.;
+      setf v2 Vec2.y 0.;
+      v2
 
-  let set_x v x = setf v Vec2.x x
-  let set_y v y = setf v Vec2.y y
-end
+    let set_x v x = setf v Vec2.x x
+    let set_y v y = setf v Vec2.y y
+  end
 
-module Rot = struct
-  include Functions.Math.Rot
+  module Rot = struct
+    include Functions.Math.Rot
 
-  type t' = Rot.t
-  type t = t' ctyp
+    type t' = Rot.t
+    type t = t' ctyp
 
-  let t = Rot.t
+    let t = Rot.t
 
-  let create c s =
-    let r = make t in
-    setf r Rot.c c;
-    setf r Rot.s s;
-    r
+    let create c s =
+      let r = make t in
+      setf r Rot.c c;
+      setf r Rot.s s;
+      r
 
-  let zero () =
-    let r = make t in
-    setf r Rot.c 0.;
-    setf r Rot.s 0.;
-    r
+    let zero () =
+      let r = make t in
+      setf r Rot.c 0.;
+      setf r Rot.s 0.;
+      r
 
-  let c v = getf v Rot.c
-  let s v = getf v Rot.s
-  let set_c r c = setf r Rot.c c
-  let set_s r s = setf r Rot.s s
-end
+    let c v = getf v Rot.c
+    let s v = getf v Rot.s
+    let set_c r c = setf r Rot.c c
+    let set_s r s = setf r Rot.s s
+  end
 
-module Cos_sin = struct
-  type t' = Cos_sin.t
-  type t = t' ctyp
+  module Cos_sin = struct
+    type t' = Cos_sin.t
+    type t = t' ctyp
 
-  let t = Cos_sin.t
-end
+    let t = Cos_sin.t
+  end
 
-module Transform = struct
-  type t' = Transform.t
-  type t = t' ctyp
+  module Transform = struct
+    type t' = Transform.t
+    type t = t' ctyp
 
-  let t = Transform.t
+    let t = Transform.t
 
-  let create p q =
-    let r = make t in
-    setf r Transform.p p;
-    setf r Transform.q q;
-    r
+    let create p q =
+      let r = make t in
+      setf r Transform.p p;
+      setf r Transform.q q;
+      r
 
-  let zero () =
-    let r = make t in
-    setf r Transform.p @@ Vec2.zero ();
-    setf r Transform.q @@ Rot.zero ();
-    r
+    let zero () =
+      let r = make t in
+      setf r Transform.p @@ Vec2.zero ();
+      setf r Transform.q @@ Rot.zero ();
+      r
 
-  let p t = getf t Transform.p
-  let q t = getf t Transform.q
-  let set_p t p = setf t Transform.p p
-  let set_q t q = setf t Transform.q q
+    let p t = getf t Transform.p
+    let q t = getf t Transform.q
+    let set_p t p = setf t Transform.p p
+    let set_q t q = setf t Transform.q q
+  end
 end
 
 module Geometry = struct
@@ -143,7 +145,7 @@ module Geometry = struct
 
     let t = Circle.t
 
-    let create ?(center = Vec2.create 0. 0.) radius =
+    let create ?(center = Math.Vec2.create 0. 0.) radius =
       let c = make t in
       setf c Circle.center center;
       setf c Circle.radius radius;
