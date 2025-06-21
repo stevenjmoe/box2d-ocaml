@@ -192,6 +192,24 @@ module Math : sig
     (** [set_q t q] *)
   end
 
+  module Mat_22 : sig
+    type t' = Box2d_c.Types.Mat_22.t
+    type t = t' ctyp
+  end
+
+  module AABB : sig
+    type t' = Box2d_c.Types.AABB.t
+    type t = t' ctyp
+
+    val t : t Ctypes.typ
+    val create : Vec2.t -> Vec2.t -> t
+  end
+
+  module Plane : sig
+    type t' = Box2d_c.Types.Plane.t
+    type t = t' ctyp
+  end
+
   val rotate_vector : Rot.t -> Vec2.t -> Vec2.t
   (** Rotate a vector *)
 
@@ -236,6 +254,87 @@ module Math : sig
 
   val unwind_large_angle : float -> float
   (** Convert any into the range [-pi, pi] (slow) *)
+
+  val transform_point : Transform.t -> Vec2.t -> Vec2.t
+  (** Transform a point (e.g. local space to world space) *)
+
+  val inv_transform_point : Transform.t -> Vec2.t -> Vec2.t
+  (** Inverse transform a point (e.g. world space to local space) *)
+
+  val mul_transforms : Transform.t -> Transform.t -> Transform.t
+  (** Multiply two transforms. If the result is applied to a point p local to frame B, the transform
+      would first convert p to a point local to frame A, then into a point in the world frame.
+      {[
+        v2 = A.q.Rot(B.q.Rot(v1) + B.p) + A.p = (A.q * B.q).Rot(v1) + A.q.Rot(B.p) + A.p
+      ]} *)
+
+  val inv_mul_transforms : Transform.t -> Transform.t -> Transform.t
+  (** Creates a transform that converts a local point in frame B to a local point in frame A.
+      {[
+        v2 = A.q' * ((B.q * v1) + B.p - A.p) = (A.q' * B.q * v1) + (A.q' * (B.p - A.p))
+      ]} *)
+
+  val mul_mv : Mat_22.t -> Vec2.t -> Vec2.t
+  (** Multiply a 2-by-2 matrix times a 2D vector *)
+
+  val get_inverse_22 : Mat_22.t -> Mat_22.t
+  (** Get the inverse of a 2-by-2 matrix *)
+
+  val solve_22 : Mat_22.t -> Vec2.t -> Vec2.t
+  (** Solve [A * x = b], where b is a column vector. This is more efficient than computing the
+      inverse in one-shot cases. *)
+
+  val aabb_contains : AABB.t -> AABB.t -> bool
+  (** Does a fully contain b *)
+
+  val aabb_center : AABB.t -> Vec2.t
+  (** Get the center of the AABB. *)
+
+  val aabb_extents : AABB.t -> Vec2.t
+  (** Get the extents of the AABB (half-widths). *)
+
+  val aabb_union : AABB.t -> AABB.t -> AABB.t
+  (** Union of two AABBs *)
+
+  val aabb_overlaps : AABB.t -> AABB.t -> bool
+  (** Do a and b overlap *)
+
+  val plane_separation : Plane.t -> Vec2.t -> float
+  (** Signed separation of a point from a plane *)
+
+  val is_valid_float : float -> bool
+  (** Is this a valid number? Not NaN or infinity. *)
+
+  val is_valid_vec2 : Vec2.t -> bool
+  (** Is this a valid vector? Not NaN or infinity. *)
+
+  val is_valid_rotation : Rot.t -> bool
+  (** Is this a valid rotation? Not NaN or infinity. Is normalized. *)
+
+  val is_valid_aabb : AABB.t -> bool
+  (** Is this a valid bounding box? Not Nan or infinity. Upper bound greater than or equal to lower
+      bound. *)
+
+  val is_valid_plane : Plane.t -> bool
+  (** Is this a valid plane? Normal is a unit vector. Not Nan or infinity. *)
+
+  val set_length_units_per_meter : float -> unit
+  (** Box2D bases all length units on meters, but you may need different units for your game. You
+      can set this value to use different units. This should be done at application startup and only
+      modified once. Default value is 1. For example, if your game uses pixels for units you can use
+      pixels for all length values sent to Box2D. There should be no extra cost. However, Box2D has
+      some internal tolerances and thresholds that have been tuned for meters. By calling this
+      function, Box2D is able to adjust those tolerances and thresholds to improve accuracy. A good
+      rule of thumb is to pass the height of your player character to this function. So if your
+      player character is 32 pixels high, then pass 32 to this function. Then you may confidently
+      use pixels for all the length values sent to Box2D. All length values returned from Box2D will
+      also be pixels because Box2D does not do any scaling internally. However, you are now on the
+      hook for coming up with good values for gravity, density, and forces.
+
+      warning: This must be modified before any calls to Box2D *)
+
+  val get_length_units_per_meter : unit -> float
+  (** Get the current length units per meter. *)
 end
 
 module Geometry : sig
@@ -542,14 +641,6 @@ module Contact_events : sig
   val t : t Ctypes.typ
 end
 
-module AABB : sig
-  type t' = Box2d_c.Types.AABB.t
-  type t = t' ctyp
-
-  val t : t Ctypes.typ
-  val create : Math.Vec2.t -> Math.Vec2.t -> t
-end
-
 module Tree_stats : sig
   type t' = Box2d_c.Types.Tree_stats.t
   type t = t' ctyp
@@ -760,7 +851,7 @@ module World : sig
 
   val overlap_aabb :
     World_id.t ->
-    AABB.t ->
+    Math.AABB.t ->
     Query_filter.t ->
     (Shape_id.t Ctypes_static.ptr -> unit Ctypes_static.ptr -> bool) ->
     unit Ctypes_static.ptr ->
@@ -1317,7 +1408,7 @@ module Body : sig
 
       warning: do not ignore the return value, it specifies the valid number of elements *)
 
-  val compute_aabb : Body_id.t -> AABB.t
+  val compute_aabb : Body_id.t -> Math.AABB.t
   (** Get the current world AABB that contains all the attached shapes. Note that this may not
       encompass the body origin. If there are no shapes attached then the returned AABB is empty and
       centered on the body origin. *)
@@ -1714,7 +1805,7 @@ module Shape : sig
       warning overlaps may contain destroyed shapes so use b2Shape_IsValid to confirm each overlap
   *)
 
-  val get_aabb : Shape_id.t -> AABB.t
+  val get_aabb : Shape_id.t -> Math.AABB.t
   (** Get the current world AABB *)
 
   val get_mass_data : Shape_id.t -> Geometry.Mass_data.t

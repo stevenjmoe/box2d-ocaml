@@ -850,6 +850,37 @@ module Functions (F : Ctypes.FOREIGN) = struct
     let rotate_vector = foreign "b2RotateVector" (Rot.t @-> Vec2.t @-> returning Vec2.t)
     let inv_rotate_vector = foreign "b2InvRotateVector" (Rot.t @-> Vec2.t @-> returning Vec2.t)
 
+    (* here *)
+    let transform_point = foreign "b2TransformPoint" (Transform.t @-> Vec2.t @-> returning Vec2.t)
+
+    let inv_transform_point =
+      foreign "b2InvTransformPoint" (Transform.t @-> Vec2.t @-> returning Vec2.t)
+
+    let mul_transforms =
+      foreign "b2MulTransforms" (Transform.t @-> Transform.t @-> returning Transform.t)
+
+    let inv_mul_transforms =
+      foreign "b2InvMulTransforms" (Transform.t @-> Transform.t @-> returning Transform.t)
+
+    let mul_mv = foreign "b2MulMV" (Mat_22.t @-> Vec2.t @-> returning Vec2.t)
+    let get_inverse_22 = foreign "b2GetInverse22" (Mat_22.t @-> returning Mat_22.t)
+    let solve_22 = foreign "b2Solve22" (Mat_22.t @-> Vec2.t @-> returning Vec2.t)
+    let aabb_contains = foreign "b2AABB_Contains" (AABB.t @-> AABB.t @-> returning bool)
+    let aabb_center = foreign "b2AABB_Center" (AABB.t @-> returning Vec2.t)
+    let aabb_extents = foreign "b2AABB_Extents" (AABB.t @-> returning Vec2.t)
+    let aabb_union = foreign "b2AABB_Union" (AABB.t @-> AABB.t @-> returning AABB.t)
+    let aabb_overlaps = foreign "b2AABB_Overlaps" (AABB.t @-> AABB.t @-> returning bool)
+
+    (* TODO: let make_aabb = foreign "b2MakeAABB_wrap" (ptr Vec2.t @-> int @-> float @-> returning AABB.t)*)
+    let plane_separation = foreign "b2PlaneSeparation" (Plane.t @-> Vec2.t @-> returning float)
+    let is_valid_float = foreign "b2IsValidFloat" (float @-> returning bool)
+    let is_valid_vec2 = foreign "b2IsValidVec2" (Vec2.t @-> returning bool)
+    let is_valid_rotation = foreign "b2IsValidRotation" (Rot.t @-> returning bool)
+    let is_valid_aabb = foreign "b2IsValidAABB" (AABB.t @-> returning bool)
+    let is_valid_plane = foreign "b2IsValidPlane" (Plane.t @-> returning bool)
+    let set_length_units_per_meter = foreign "b2SetLengthUnitsPerMeter" (float @-> returning void)
+    let get_length_units_per_meter = foreign "b2GetLengthUnitsPerMeter" (void @-> returning float)
+
     module Vec2 = struct
       let dot = foreign "b2Dot" (Vec2.t @-> Vec2.t @-> returning float)
       let cross = foreign "b2Cross" (Vec2.t @-> Vec2.t @-> returning float)

@@ -92,6 +92,29 @@ module Math = struct
     let set_p t p = setf t Transform.p p
     let set_q t q = setf t Transform.q q
   end
+
+  module AABB = struct
+    type t' = AABB.t
+    type t = t' ctyp
+
+    let t = AABB.t
+
+    let create upper lower =
+      let a = make t in
+      setf a AABB.upper_bound upper;
+      setf a AABB.lower_bound lower;
+      a
+  end
+
+  module Mat_22 = struct
+    type t' = Mat_22.t
+    type t = t' ctyp
+  end
+
+  module Plane = struct
+    type t' = Plane.t
+    type t = t' ctyp
+  end
 end
 
 module Geometry = struct
@@ -611,19 +634,6 @@ module Contact_events = struct
   type t = t' ctyp
 
   let t = Contact_events.t
-end
-
-module AABB = struct
-  type t' = AABB.t
-  type t = t' ctyp
-
-  let t = AABB.t
-
-  let create upper lower =
-    let a = make t in
-    setf a AABB.upper_bound upper;
-    setf a AABB.lower_bound lower;
-    a
 end
 
 module Tree_stats = struct

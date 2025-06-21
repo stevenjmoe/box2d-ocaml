@@ -144,6 +144,15 @@ module Types (F : Ctypes.TYPE) = struct
     let () = seal t
   end
 
+  module Mat_22 = struct
+    type t
+
+    let t : t Ctypes.structure typ = structure "b2Mat22"
+    let cx = field t "cx" Vec2.t
+    let cy = field t "cy" Vec2.t
+    let () = seal t
+  end
+
   module AABB = struct
     type t
 
