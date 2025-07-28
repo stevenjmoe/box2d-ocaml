@@ -41,6 +41,12 @@ module Types (F : Ctypes.TYPE) = struct
     let t = enum "b2ShapeType" ~typedef:true vals
   end
 
+  module Hex_color = struct
+    type t = Unsigned.UInt32.t
+
+    let t : t Ctypes.typ = Ctypes.uint32_t
+  end
+
   module Joint_type = struct
     type t =
       | Distance
@@ -821,6 +827,156 @@ module Types (F : Ctypes.TYPE) = struct
     let shape_id_a = field t "shapeIdA" Shape_id.t
     let shape_id_b = field t "shapeIdB" Shape_id.t
     let manifold = field t "manifold" Manifold.t
+    let () = seal t
+  end
+
+  module Debug_draw = struct
+    type t
+
+    let t : t Ctypes.structure typ = structure "b2DebugDraw"
+    let draw_polygon_sig = ptr Vec2.t @-> int @-> uint32_t @-> ptr void @-> returning @@ void
+    let draw_polygon = field t "DrawPolygonFcn" (static_funptr draw_polygon_sig)
+    let draw_shapes = field t "drawShapes" bool
+
+    let draw_solid_polygon_sig =
+      ptr Transform.t @-> ptr Vec2.t @-> int @-> float @-> uint32_t @-> ptr void @-> returning void
+
+    let draw_solid_polygon_cb_sig =
+      ptr Transform.t @-> ptr Vec2.t @-> int @-> float @-> uint32_t @-> ptr void @-> returning void
+
+    let draw_solid_polygon = field t "DrawSolidPolygonFcn" (static_funptr draw_solid_polygon_sig)
+    let () = seal t
+
+    (* TODO: 
+    let draw_circle_sig = Vec2.t @-> float @-> Hex_color.t @-> ptr void @-> returning void
+
+    let draw_solid_circle_sig =
+      Transform.t @-> float @-> Hex_color.t @-> ptr void @-> returning void
+
+    let draw_solid_capsule_sig =
+      Vec2.t @-> Vec2.t @-> float @-> Hex_color.t @-> ptr void @-> returning void
+
+    let draw_segment_sig = Vec2.t @-> Vec2.t @-> Hex_color.t @-> ptr void @-> returning void
+    let draw_transform_sig = Transform.t @-> ptr void @-> returning void
+    let draw_point_sig = Vec2.t @-> float @-> Hex_color.t @-> ptr void @-> returning void
+    let draw_string_sig = Vec2.t @-> ptr char @-> Hex_color.t @-> ptr void @-> returning void
+
+    (* fields in header order *)
+    let draw_circle = field t "DrawCircleFcn" (static_funptr draw_circle_sig)
+    let draw_solid_circle = field t "DrawSolidCircleFcn" (static_funptr draw_solid_circle_sig)
+    let draw_solid_capsule = field t "DrawSolidCapsuleFcn" (static_funptr draw_solid_capsule_sig)
+    let draw_segment = field t "DrawSegmentFcn" (static_funptr draw_segment_sig)
+    let draw_transform = field t "DrawTransformFcn" (static_funptr draw_transform_sig)
+    let draw_point = field t "DrawPointFcn" (static_funptr draw_point_sig)
+    let draw_string = field t "DrawStringFcn" (static_funptr draw_string_sig)
+    let drawing_bounds = field t "drawingBounds" AABB.t
+    let use_drawing_bounds = field t "useDrawingBounds" bool
+    let draw_joints = field t "drawJoints" bool
+    let draw_joint_extras = field t "drawJointExtras" bool
+    let draw_bounds = field t "drawBounds" bool
+    let draw_mass = field t "drawMass" bool
+    let draw_body_names = field t "drawBodyNames" bool
+    let draw_contacts = field t "drawContacts" bool
+    let draw_graph_colors = field t "drawGraphColors" bool
+    let draw_contact_normals = field t "drawContactNormals" bool
+    let draw_contact_impulses = field t "drawContactImpulses" bool
+    let draw_contact_features = field t "drawContactFeatures" bool
+    let draw_friction_impulses = field t "drawFrictionImpulses" bool
+    let draw_islands = field t "drawIslands" bool
+    let context = field t "context" (ptr void)*)
+    (* 
+       /// This struct holds callbacks you can implement to draw a Box2D world.
+/// This structure should be zero initialized.
+/// @ingroup world
+typedef struct b2DebugDraw
+{
+	/// Draw a solid closed polygon provided in CCW order.
+	void ( *DrawSolidPolygonFcn )( b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
+								void* context );
+
+	/// Draw a circle.
+	void ( *DrawCircleFcn )( b2Vec2 center, float radius, b2HexColor color, void* context );
+
+	/// Draw a solid circle.
+	void ( *DrawSolidCircleFcn )( b2Transform transform, float radius, b2HexColor color, void* context );
+
+	/// Draw a solid capsule.
+	void ( *DrawSolidCapsuleFcn )( b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context );
+
+	/// Draw a line segment.
+	void ( *DrawSegmentFcn )( b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context );
+
+	/// Draw a transform. Choose your own length scale.
+	void ( *DrawTransformFcn )( b2Transform transform, void* context );
+
+	/// Draw a point.
+	void ( *DrawPointFcn )( b2Vec2 p, float size, b2HexColor color, void* context );
+
+	/// Draw a string in world space
+	void ( *DrawStringFcn )( b2Vec2 p, const char* s, b2HexColor color, void* context );
+
+	/// Bounds to use if restricting drawing to a rectangular region
+	b2AABB drawingBounds;
+
+	/// Option to restrict drawing to a rectangular region. May suffer from unstable depth sorting.
+	bool useDrawingBounds;
+
+	/// Option to draw shapes
+	bool drawShapes;
+
+	/// Option to draw joints
+	bool drawJoints;
+
+	/// Option to draw additional information for joints
+	bool drawJointExtras;
+
+	/// Option to draw the bounding boxes for shapes
+	bool drawBounds;
+
+	/// Option to draw the mass and center of mass of dynamic bodies
+	bool drawMass;
+
+	/// Option to draw body names
+	bool drawBodyNames;
+
+	/// Option to draw contact points
+	bool drawContacts;
+
+	/// Option to visualize the graph coloring used for contacts and joints
+	bool drawGraphColors;
+
+	/// Option to draw contact normals
+	bool drawContactNormals;
+
+	/// Option to draw contact normal impulses
+	bool drawContactImpulses;
+
+	/// Option to draw contact feature ids
+	bool drawContactFeatures;
+
+	/// Option to draw contact friction impulses
+	bool drawFrictionImpulses;
+
+	/// Option to draw islands as bounding boxes
+	bool drawIslands;
+
+	/// User context that is passed as an argument to drawing callback functions
+	void* context;
+} b2DebugDraw;
+
+
+       *)
+  end
+
+  module Ocaml_draw_data = struct
+    type t
+
+    let t : t Ctypes.structure typ = structure "OcamlDrawData"
+
+    let ocaml_draw_solid_polygon_cb =
+      field t "ocaml_draw_solid_polygon_cb" (static_funptr Debug_draw.draw_solid_polygon_sig)
+
+    let ctx = field t "ocaml_context" (ptr void)
     let () = seal t
   end
 end

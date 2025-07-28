@@ -23,10 +23,61 @@ let () =
   Shape.Surface_material.set_friction (Shape.Shape_def.material shape_def) 0.3;
   Shape.create_polygon body_id (Ctypes.addr shape_def) (Ctypes.addr dynamic_box) |> ignore;
 
+  (* debug draw *)
+  let callback
+      (transform_ptr : Math.Transform.t Ctypes.ptr)
+      (vertices_ptr : Math.Vec2.t Ctypes.ptr)
+      (count : int)
+      (_radius : float)
+      (color : Unsigned.uint32)
+      (_context : unit Ctypes.ptr) : unit =
+    let open Ctypes in
+    let transform = !@transform_ptr in
+    let position = Math.Transform.p transform in
+    let pos_x = Math.Vec2.x position in
+    let pos_y = Math.Vec2.y position in
+    Printf.printf "Transform.p = (%f, %f)\n%!" pos_x pos_y;
+
+    if count > 0 && not (is_null vertices_ptr) then (
+      let vertices = CArray.from_ptr vertices_ptr count in
+      for i = 0 to count - 1 do
+        let v = CArray.get vertices i in
+        let x = Math.Vec2.x v in
+        let y = Math.Vec2.y v in
+        Printf.printf "v[%d] = (%f, %f)\n%!" i x y
+      done;
+      Printf.printf "Color (hex): 0x%08lx\n%!" (Unsigned.UInt32.to_int32 color))
+    else
+      Printf.printf "Invalid or empty vertex array (count = %d)\n%!" count
+  in
+
+  let ocaml_cb =
+    Ctypes.coerce
+      (Foreign.funptr Box2d.Debug_draw.draw_solid_polygon_sig)
+      (Ctypes.static_funptr Box2d.Debug_draw.draw_solid_polygon_sig)
+      callback
+  in
+
+  let cb =
+    Ctypes.coerce
+      (Foreign.funptr Box2d.Debug_draw.draw_solid_polygon_sig)
+      (Ctypes.static_funptr Box2d.Debug_draw.draw_solid_polygon_sig)
+      callback
+  in
+
+  let debug_draw = Debug_draw.make () in
+
+  Debug_draw.set_draw_solid_polygon_fn debug_draw cb;
+  Debug_draw.set_draw_shapes debug_draw true;
+
+  let ctx = Ctypes.(from_voidp Ctypes.void Ctypes.null) in
+  Box2d.install_draw_solid_polygon (Ctypes.addr debug_draw) ocaml_cb ctx;
+
   let time_step = 1. /. 60. in
   let sub_step_count = 4 in
   for _ = 0 to 90 do
     World.step world_id time_step sub_step_count;
+    World.draw_world world_id (Ctypes.addr debug_draw);
     let x = Body.get_position body_id |> Math.Vec2.x in
     let y = Body.get_position body_id |> Math.Vec2.y in
     Printf.printf "%4.2f %4.2f\n" x y;

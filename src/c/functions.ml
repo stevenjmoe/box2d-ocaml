@@ -7,6 +7,17 @@ module Functions (F : Ctypes.FOREIGN) = struct
   let default_query_filter = foreign "b2DefaultQueryFilter" (void @-> returning Query_filter.t)
   let default_shape_def = foreign "b2DefaultShapeDef" (void @-> returning Shape_def.t)
   let default_chain_def = foreign "b2DefaultChainDef" (void @-> returning Chain_def.t)
+  let default_debug_draw = foreign "b2DefaultDebugDraw" (void @-> returning Debug_draw.t)
+
+  let install_draw_solid_polygon =
+    foreign "b2dd_install_draw_solid_polygon"
+      (ptr Debug_draw.t
+      @-> static_funptr Debug_draw.draw_solid_polygon_cb_sig
+      @-> ptr Ctypes.void
+      @-> returning Ctypes.void)
+
+  let uninstall_draw_solid_polygon =
+    foreign "b2dd_uninstall_draw_solid_polygon" (ptr Debug_draw.t @-> returning void)
 
   let default_distance_joint_def =
     foreign "b2DefaultDistanceJointDef" (void @-> returning Distance_joint_def.t)
@@ -37,9 +48,9 @@ module Functions (F : Ctypes.FOREIGN) = struct
   let make_box = foreign "b2MakeBox" (float @-> float @-> returning Polygon.t)
 
   module World = struct
-    (* TODO: 
-  let draw_world = foreign "b2World_Draw" (World.World_id.t @-> returning void)
-  *)
+    let draw_world =
+      foreign "b2World_Draw" (World.World_id.t @-> ptr Debug_draw.t @-> returning void)
+
     let default_world_def = foreign "b2DefaultWorldDef" (void @-> returning World.World_def.t)
     let create = foreign "b2CreateWorld" (ptr World.World_def.t @-> returning World.World_id.t)
     let destroy = foreign "b2DestroyWorld" (World.World_id.t @-> returning void)

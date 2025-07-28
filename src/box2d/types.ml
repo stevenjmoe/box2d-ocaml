@@ -7,6 +7,7 @@ type 'a ctyp = 'a Ctypes.structure
 
 module Shape_type = Shape_type
 module Joint_type = Joint_type
+module Hex_color = Hex_color
 
 module Math = struct
   module Vec2 = struct
@@ -243,6 +244,32 @@ module Geometry = struct
     let ghost2 c = getf c Chain_segment.ghost2
     let segment c = getf c Chain_segment.segment
   end
+end
+
+module Ocaml_draw_data = struct
+  type t' = Ocaml_draw_data.t
+  type t = t' ctyp
+
+  let t = Ocaml_draw_data.t
+  let make () = make t
+  let set_ocaml_draw_solid_polygon_cb d cb = setf d Ocaml_draw_data.ocaml_draw_solid_polygon_cb cb
+  let set_ctx d ctx = setf d Ocaml_draw_data.ctx ctx
+end
+
+module Debug_draw = struct
+  type t' = Debug_draw.t
+  type t = t' ctyp
+
+  let t = Debug_draw.t
+  let make () = Functions.default_debug_draw ()
+  let draw_shapes d = getf d Debug_draw.draw_shapes
+  let set_draw_shapes d b = setf d Debug_draw.draw_shapes b
+  let draw_polygon_sig = Debug_draw.draw_polygon_sig
+  let draw_polygon_fn d = getf d Debug_draw.draw_polygon
+  let set_draw_polygon_fn d f = setf d Debug_draw.draw_polygon f
+  let draw_solid_polygon_sig = Debug_draw.draw_solid_polygon_sig
+  let draw_solid_polygon_fn d = getf d Debug_draw.draw_solid_polygon
+  let set_draw_solid_polygon_fn d f = setf d Debug_draw.draw_solid_polygon f
 end
 
 module World = struct

@@ -14,6 +14,33 @@ typedef struct {
     void* context;
 } OcamlCallbackData;
 
+typedef void (*ocaml_draw_solid_polygon_cb)(
+    b2Transform*,
+    b2Vec2*,
+    int,
+    float,
+    b2HexColor,
+    void*);
+
+typedef struct OcamlDrawData {
+    ocaml_draw_solid_polygon_cb ocaml_draw_solid_polygon_cb;
+    void* ocaml_context;
+} OcamlDrawData;
+
+void b2dd_install_draw_solid_polygon(b2DebugDraw* dd,
+                                     ocaml_draw_solid_polygon_cb cb,
+                                     void* ocaml_ctx);
+
+void b2dd_uninstall_draw_solid_polygon(b2DebugDraw* dd);
+
+void draw_solid_polygon_trampoline(
+    b2Transform xf,
+    const b2Vec2* vertices,
+    int count,
+    float radius,
+    b2HexColor color,
+    void* context);
+
 // OCaml callback types
 typedef bool (*ocaml_overlap_ptr)(b2ShapeId*, void*);
 typedef float (*ocaml_cast_ray_ptr)(b2ShapeId*, b2Vec2*, b2Vec2*, float, void*);

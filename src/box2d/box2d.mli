@@ -753,6 +753,89 @@ module Query_filter : sig
   val set_mask_bits : t -> Unsigned.uint64 -> unit
 end
 
+module Hex_color : sig
+  type t = Unsigned.UInt32.t
+end
+
+module Ocaml_draw_data : sig
+  type t' = Box2d_c.Types.Ocaml_draw_data.t
+  type t = t' ctyp
+
+  val t : t Ctypes.typ
+  val make : unit -> t
+
+  val set_ocaml_draw_solid_polygon_cb :
+    t ->
+    (Math.Transform.t Ctypes.ptr ->
+    Math.Vec2.t Ctypes.ptr ->
+    int ->
+    float ->
+    Hex_color.t ->
+    unit Ctypes_static.ptr ->
+    unit)
+    Ctypes.static_funptr ->
+    unit
+
+  val set_ctx : t -> unit Ctypes.ptr -> unit
+end
+
+module Debug_draw : sig
+  type t' = Box2d_c.Types.Debug_draw.t
+  type t = t' ctyp
+
+  val t : t Ctypes.typ
+  val make : unit -> t
+  val draw_shapes : t -> bool
+  val set_draw_shapes : t -> bool -> unit
+
+  val draw_polygon_sig :
+    (Math.Vec2.t Ctypes.ptr -> int -> Unsigned.UInt32.t -> unit Ctypes.ptr -> unit) Ctypes_static.fn
+
+  val draw_polygon_fn :
+    t ->
+    (Math.Vec2.t Ctypes.ptr -> int -> Unsigned.UInt32.t -> unit Ctypes.ptr -> unit)
+    Ctypes.static_funptr
+
+  val set_draw_polygon_fn :
+    t ->
+    (Math.Vec2.t Ctypes.ptr -> int -> Unsigned.UInt32.t -> unit Ctypes.ptr -> unit)
+    Ctypes.static_funptr ->
+    unit
+
+  val draw_solid_polygon_sig :
+    (Math.Transform.t Ctypes.ptr ->
+    Math.Vec2.t Ctypes.ptr ->
+    int ->
+    float ->
+    Unsigned.UInt32.t ->
+    unit Ctypes_static.ptr ->
+    unit)
+    Ctypes_static.fn
+
+  val draw_solid_polygon_fn :
+    t ->
+    (Math.Transform.t Ctypes.ptr ->
+    Math.Vec2.t Ctypes.ptr ->
+    int ->
+    float ->
+    Hex_color.t ->
+    unit Ctypes.ptr ->
+    unit)
+    Ctypes.static_funptr
+
+  val set_draw_solid_polygon_fn :
+    t ->
+    (Math.Transform.t Ctypes.ptr ->
+    Math.Vec2.t Ctypes.ptr ->
+    int ->
+    float ->
+    Hex_color.t ->
+    unit Ctypes.ptr ->
+    unit)
+    Ctypes.static_funptr ->
+    unit
+end
+
 (** These functions allow you to create a simulation world.
 
     You can add rigid bodies and joint constraints to the world and run the simulation. You can get
@@ -767,6 +850,8 @@ module World : sig
 
     val t : t Ctypes.typ
   end
+
+  val draw_world : World_id.t -> Debug_draw.t Ctypes.ptr -> unit
 
   module World_def : sig
     type t' = Box2d_c.Types.World.World_def.t
@@ -2317,3 +2402,18 @@ module Shape : sig
     (** Get the wheel joint current motor torque, usually in newton-meters *)
   end
 end
+
+val install_draw_solid_polygon :
+  Debug_draw.t Ctypes_static.ptr ->
+  (Math.Transform.t Ctypes_static.ptr ->
+  Math.Vec2.t Ctypes_static.ptr ->
+  int ->
+  float ->
+  Unsigned.uint32 ->
+  unit Ctypes_static.ptr ->
+  unit)
+  Ctypes.static_funptr ->
+  unit Ctypes.ptr ->
+  unit
+
+val uninstall_draw_solid_polygon : Debug_draw.t Ctypes_static.ptr -> unit

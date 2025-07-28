@@ -1,6 +1,8 @@
 #include "shims.h"
 #include <assert.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // Overlap callback shims
 
@@ -93,4 +95,38 @@ B2_API void b2World_SetPreSolveCallback_wrap(b2WorldId worldId, ocaml_presolve_p
                                            void* context) {
     OcamlCallbackData data = { .callback = cb, .context = context };
     b2World_SetPreSolveCallback(worldId, b2_presolve_proxy, &data);
+}
+
+void draw_solid_polygon_trampoline(
+    b2Transform xf,
+    const b2Vec2* vertices,
+    int count,
+    float radius,
+    b2HexColor color,
+    void* raw_data)
+{
+    OcamlDrawData* data = (OcamlDrawData*)raw_data;
+    if (data && data->ocaml_draw_solid_polygon_cb) {
+        data->ocaml_draw_solid_polygon_cb(&xf, vertices, count, radius, color, data->ocaml_context);
+    }
+}
+
+void b2dd_install_draw_solid_polygon(b2DebugDraw* dd,
+                                     ocaml_draw_solid_polygon_cb cb,
+                                     void* ocaml_ctx)
+{
+    OcamlDrawData* d = (OcamlDrawData*)malloc(sizeof *d);
+    d->ocaml_draw_solid_polygon_cb = cb;
+    d->ocaml_context = ocaml_ctx;
+
+    dd->DrawSolidPolygonFcn = &draw_solid_polygon_trampoline;  
+    dd->context = d;                                  
+}
+
+void b2dd_uninstall_draw_solid_polygon(b2DebugDraw* dd)
+{
+    if (!dd) return;
+    free(dd->context);
+    dd->context = NULL;
+    dd->DrawSolidPolygonFcn = NULL;
 }
